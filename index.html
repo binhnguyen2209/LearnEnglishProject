@@ -134,25 +134,25 @@
 
 <div class="nav-tabs">
   <button class="nav-btn active" onclick="switchTab('vocab', this)">1. Từ vựng</button>
-  <button class="nav-btn" onclick="switchTab('vocab-store', this)">📚 Kho từ vựng</button>
   <button class="nav-btn" onclick="switchTab('dictation', this)">2. Nghe Chính Tả</button>
   <button class="nav-btn" onclick="switchTab('grammar', this)">3. Ngữ pháp (12 Thì)</button>
   <button class="nav-btn" onclick="switchTab('speaking', this)">4. Luyện nói</button>
   <button class="nav-btn" onclick="switchTab('verbs', this)">5. Bất quy tắc</button>
   <button class="nav-btn" onclick="switchTab('notebook', this)">6. Sổ tay & Câu sai</button>
+  <button class="nav-btn" onclick="switchTab('vocab-store', this)">📚 Kho từ vựng</button>
 </div>
 
 <div class="container">
 
-  <!-- ==================== 1. TỪ VỰNG ==================== -->
+  <!-- ==================== 1. TỪ VỰNG (VÒNG LẶP 10 TỪ THÔNG MINH) ==================== -->
   <div id="tab-vocab" class="tab-content active">
     <div class="card">
       <div class="card-title">
-        <span>Cài đặt bài học từ vựng (6 Bậc VN)</span>
-        <span class="tag" id="vocab-counter">0/0</span>
+        <span>Cài đặt bài học từ vựng (Hàng đợi 10 từ xoay vòng)</span>
+        <span class="tag" id="vocab-counter">0/10</span>
       </div>
       <div class="grid-2">
-        <select id="vocab-level" onchange="resetVocab()">
+        <select id="vocab-level" onchange="initVocabQueue()">
           <option value="all">Tất cả trình độ (Bậc 1-6)</option>
           <option value="1">Bậc 1 (A1 - Cơ bản)</option>
           <option value="2">Bậc 2 (A2 - Sơ cấp)</option>
@@ -161,7 +161,7 @@
           <option value="5">Bậc 5 (C1 - Cao cấp)</option>
           <option value="6">Bậc 6 (C2 - Thành thạo)</option>
         </select>
-        <select id="vocab-topic" onchange="resetVocab()">
+        <select id="vocab-topic" onchange="initVocabQueue()">
           <option value="all">Tất cả chủ đề</option>
           <option value="nail">💅 Chuyên ngành Nail</option>
           <option value="lash">👁️ Nối mi (Eyelash)</option>
@@ -181,7 +181,7 @@
         <span class="tag" id="v-badge">Bậc 1 • Nail</span>
         <div style="display:flex; gap:6px;">
           <button class="btn btn-sm btn-secondary" onclick="speakText(currentVocab.en)">🔊 Nghe</button>
-          <button class="btn btn-sm btn-success" id="master-btn" onclick="toggleMasterVocab()">✅ Đánh dấu Đã thuộc</button>
+          <button class="btn btn-sm btn-success" onclick="markCurrentAsMastered()">✅ Đánh dấu Đã thuộc</button>
         </div>
       </div>
 
@@ -202,25 +202,26 @@
       <div id="v-feedback" class="feedback-box"></div>
 
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button class="btn btn-secondary btn-block" onclick="nextVocab()">Câu tiếp theo ➔</button>
+        <button class="btn btn-secondary btn-block" onclick="nextVocabQueue()">Từ tiếp theo trong hàng đợi ➔</button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== 1.1 KHO TỪ VỰNG & QUẢN LÝ ÔN TẬP ==================== -->
+  <!-- ==================== KHO TỪ VỰNG & ÔN TẬP ==================== -->
   <div id="tab-vocab-store" class="tab-content">
     <div class="card">
       <div class="card-title">
-        <span>📚 Kho Quản Lý Từ Vựng Cá Nhân</span>
-        <span class="tag" id="store-stats">0 từ</span>
+        <span>📚 Kho Quản Lý & Ôn Tập Từ Vựng</span>
+        <span class="tag" id="store-stats">0 tổng số</span>
       </div>
       <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">
-        Những từ bạn đánh dấu <b>Đã thuộc</b> sẽ được lưu tại đây để không làm phiền bạn khi học mới. Bạn có thể xem lại hoặc bấm ôn tập bất cứ lúc nào!
+        Quản lý các từ đã thuộc và bấm <b>Ôn tập</b> để luyện lại bất cứ lúc nào!
       </p>
       <div class="grid-2">
         <button class="btn btn-primary" onclick="renderVocabStore('unmastered')">Từ chưa thuộc (Cần cày)</button>
         <button class="btn btn-success" onclick="renderVocabStore('mastered')">Từ đã thuộc (Đã nhớ)</button>
       </div>
+      <button class="btn btn-warning btn-block" style="margin-top:8px;" onclick="startReviewMastered()">🔄 Ôn tập lại tất cả từ Đã thuộc</button>
     </div>
 
     <div class="card">
@@ -378,14 +379,12 @@
 <script>
   /* ================= KHO TỪ VỰNG ĐẦY ĐỦ 6 BẬC ================= */
   const VOCAB_DATA = [
-    // Bậc 1 (A1)
     { id: 1, level: "1", topic: "nail", en: "Cuticle", phonetic: "/ˈkjuː.tɪ.kəl/", vi: "Da chết quanh móng" },
     { id: 2, level: "1", topic: "nail", en: "Nail file", phonetic: "/neɪl faɪl/", vi: "Dũa móng tay" },
     { id: 3, level: "1", topic: "lash", en: "Eyelash extensions", phonetic: "/ˈaɪ.læʃ ɪkˈsten.ʃənz/", vi: "Nối mi" },
     { id: 4, level: "1", topic: "spa", en: "Facial cleansing", phonetic: "/ˈfeɪ.ʃəl ˈklen.zɪŋ/", vi: "Làm sạch da mặt" },
     { id: 5, level: "1", topic: "salon", en: "Appointment", phonetic: "/əˈpɔɪnt.mənt/", vi: "Lịch hẹn" },
     { id: 6, level: "1", topic: "sweden", en: "Receipt", phonetic: "/rɪˈsiːt/", vi: "Hóa đơn / Biên lai" },
-    // Bậc 2 (A2)
     { id: 7, level: "2", topic: "nail", en: "Gel polish", phonetic: "/dʒel ˈpɒl.ɪʃ/", vi: "Sơn gel" },
     { id: 8, level: "2", topic: "nail", en: "Acrylic extensions", phonetic: "/əˈkrɪl.ɪk ɪkˈsten.ʃənz/", vi: "Đắp móng bột" },
     { id: 9, level: "2", topic: "nail", en: "Almond shape", phonetic: "/ˈɑː.mənd ʃeɪp/", vi: "Dáng móng hạnh nhân" },
@@ -396,21 +395,17 @@
     { id: 14, level: "2", topic: "salon", en: "Does the pressure feel okay?", phonetic: "/dʌz ðə ˈpreʃ.ər fiːl əʊˈkeɪ/", vi: "Lực ấn như vậy có vừa không ạ?" },
     { id: 15, level: "2", topic: "sweden", en: "Public transport", phonetic: "/ˈpʌb.lɪk ˈtræn.spɔːt/", vi: "Phương tiện công cộng" },
     { id: 16, level: "2", topic: "sweden", en: "Residence permit", phonetic: "/ˈrez.ɪ.dəns ˈpɜː.mɪt/", vi: "Giấy phép cư trú" },
-    // Bậc 3 (B1)
     { id: 17, level: "3", topic: "nail", en: "Builder gel", phonetic: "/ˈbɪl.dər dʒel/", vi: "Gel cứng móng / Builder gel" },
     { id: 18, level: "3", topic: "nail", en: "Nail buffer", phonetic: "/neɪl ˈbʌf.ər/", vi: "Phao dũa nhẵn móng" },
     { id: 19, level: "3", topic: "lash", en: "Refill / Infill", phonetic: "/ˈriː.fɪl/", vi: "Dặm lại mi" },
     { id: 20, level: "3", topic: "lash", en: "Volume fan", phonetic: "/ˈvɒl.juːm fæn/", vi: "Fan mi volume" },
     { id: 21, level: "3", topic: "spa", en: "Exfoliation", phonetic: "/eksˌfəʊ.liˈeɪ.ʃən/", vi: "Tẩy tế bào chết da" },
     { id: 22, level: "3", topic: "sweden", en: "Bank account", phonetic: "/bæŋk əˈkaʊnt/", vi: "Tài khoản ngân hàng" },
-    // Bậc 4 (B2)
     { id: 23, level: "4", topic: "nail", en: "Sanitization and sterilization", phonetic: "/sæn.ɪ.taɪˈzeɪ.ʃən/", vi: "Khử trùng và tiệt trùng dụng cụ" },
     { id: 24, level: "4", topic: "lash", en: "Hypoallergenic glue", phonetic: "/ˌhaɪ.pəʊˌæl.əˈdʒen.ɪk ɡluː/", vi: "Keo nối mi ít kích ứng" },
     { id: 25, level: "4", topic: "salon", en: "Customer retention", phonetic: "/ˈkʌs.tə.mər rɪˈten.ʃən/", vi: "Giữ chân khách hàng quen" },
-    // Bậc 5 (C1)
     { id: 26, level: "5", topic: "salon", en: "Professional consultation", phonetic: "/prəˈfeʃ.ən.əl ˌkɒn.sʌlˈteɪ.ʃən/", vi: "Tư vấn chuyên nghiệp chiều lòng khách" },
     { id: 27, level: "5", topic: "sweden", en: "Labor regulations", phonetic: "/ˈleɪ.bər ˌreɡ.jʊˈleɪ.ʃənz/", vi: "Quy định luật lao động sở tại" },
-    // Bậc 6 (C2)
     { id: 28, level: "6", topic: "salon", en: "Advanced cosmetic chemistry", phonetic: "/ədˈvɑːnst kɒzˈmet.ɪk ˈkem.ɪ.stri/", vi: "Hóa mỹ phẩm chuyên sâu" }
   ];
 
@@ -499,8 +494,10 @@
 
   /* ================= GLOBAL STATE & FUNCTIONS ================= */
   let masteredIds = JSON.parse(localStorage.getItem('mastered_vocab_ids')) || [];
-  let filteredVocab = [];
-  let vocabIdx = 0;
+  
+  // Hàng đợi 10 từ xoay vòng thông minh
+  let vocabQueue = [];
+  let queueIdx = 0;
   let vocabMode = 'quiz';
   let currentVocab = null;
 
@@ -530,27 +527,33 @@
   }
 
   window.onload = function() {
-    resetVocab();
+    initVocabQueue();
     initLessonSelect();
     initGrammar();
     renderSpeaking();
     renderVerbs(IRREGULAR_VERBS);
   };
 
-  /* --- 1. VOCAB LOGIC --- */
-  function resetVocab() {
+  /* --- 1. VOCAB QUEUE LOGIC (10 TỪ XOAY VÒNG) --- */
+  function getPoolSource() {
     const lvl = document.getElementById('vocab-level').value;
     const top = document.getElementById('vocab-topic').value;
-    // Chỉ lấy những từ chưa thuộc để học mới
-    filteredVocab = VOCAB_DATA.filter(v => 
+    // Lấy những từ chưa thuộc thuộc bộ lọc
+    let pool = VOCAB_DATA.filter(v => 
       (lvl === 'all' || v.level === lvl) && 
       (top === 'all' || v.topic === top) &&
       !masteredIds.includes(v.id)
     );
-    if (filteredVocab.length === 0) {
-      filteredVocab = VOCAB_DATA.filter(v => (lvl === 'all' || v.level === lvl) && (top === 'all' || v.topic === top));
+    if (pool.length === 0) {
+      pool = VOCAB_DATA.filter(v => (lvl === 'all' || v.level === lvl) && (top === 'all' || v.topic === top));
     }
-    vocabIdx = 0;
+    return pool;
+  }
+
+  function initVocabQueue() {
+    const pool = getPoolSource().sort(() => 0.5 - Math.random());
+    vocabQueue = pool.slice(0, 10); // Lấy đúng 10 từ làm hàng đợi
+    queueIdx = 0;
     renderVocab();
   }
 
@@ -564,21 +567,17 @@
   }
 
   function renderVocab() {
-    if (filteredVocab.length === 0) {
-      document.getElementById('v-prompt').innerText = "Tuyệt vời! Đã học xong danh sách này.";
-      document.getElementById('v-phonetic').innerText = "Hãy chuyển qua Kho từ vựng hoặc đổi bậc/chủ đề khác.";
-      document.getElementById('vocab-counter').innerText = "0/0";
+    if (vocabQueue.length === 0) {
+      document.getElementById('v-prompt').innerText = "🎉 Chúc mừng! Bạn đã hoàn thành hàng đợi từ vựng.";
+      document.getElementById('v-phonetic').innerText = "Hệ thống sẽ tải lại hàng đợi mới cho bạn.";
+      document.getElementById('vocab-counter').innerText = "0/10";
+      setTimeout(initVocabQueue, 1500);
       return;
     }
-    currentVocab = filteredVocab[vocabIdx % filteredVocab.length];
-    document.getElementById('vocab-counter').innerText = `${(vocabIdx % filteredVocab.length) + 1}/${filteredVocab.length}`;
+    currentVocab = vocabQueue[queueIdx % vocabQueue.length];
+    document.getElementById('vocab-counter').innerText = `${(queueIdx % vocabQueue.length) + 1}/${vocabQueue.length}`;
     document.getElementById('v-badge').innerText = `Bậc ${currentVocab.level} • ${currentVocab.topic.toUpperCase()}`;
     document.getElementById('v-feedback').className = 'feedback-box';
-
-    const isMastered = masteredIds.includes(currentVocab.id);
-    const mBtn = document.getElementById('master-btn');
-    mBtn.innerText = isMastered ? "✅ Đã thuộc" : "⭐ Đánh dấu Đã thuộc";
-    mBtn.className = isMastered ? "btn btn-sm btn-success" : "btn btn-sm btn-secondary";
 
     if (vocabMode === 'quiz') {
       document.getElementById('v-prompt').innerText = currentVocab.en;
@@ -626,21 +625,37 @@
     }
   }
 
-  function nextVocab() { vocabIdx++; renderVocab(); }
-  
-  function toggleMasterVocab() {
-    if(!currentVocab) return;
-    const idx = masteredIds.indexOf(currentVocab.id);
-    if(idx > -1) {
-      masteredIds.splice(idx, 1);
-    } else {
-      masteredIds.push(currentVocab.id);
-    }
-    localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
-    renderVocab();
+  function nextVocabQueue() { 
+    queueIdx++; 
+    renderVocab(); 
   }
 
-  /* --- 1.1 KHO TỪ VỰNG & ÔN TẬP --- */
+  // Khi bấm thuộc: Bỏ từ này khỏi hàng đợi 10 từ và bù ngay 1 từ mới từ pool vào
+  function markCurrentAsMastered() {
+    if(!currentVocab) return;
+    if(!masteredIds.includes(currentVocab.id)) {
+      masteredIds.push(currentVocab.id);
+      localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
+    }
+    // Xóa từ hiện tại khỏi queue
+    vocabQueue.splice(queueIdx % vocabQueue.length, 1);
+
+    // Lấy thêm 1 từ mới chưa thuộc từ pool bù vào để giữ đúng 10 từ trong hàng đợi
+    const pool = getPoolSource().filter(v => !vocabQueue.some(q => q.id === v.id));
+    if(pool.length > 0) {
+      const nextWord = pool[Math.floor(Math.random() * pool.length)];
+      vocabQueue.push(nextWord);
+    }
+
+    if(vocabQueue.length === 0) {
+      initVocabQueue();
+    } else {
+      queueIdx = queueIdx % vocabQueue.length;
+      renderVocab();
+    }
+  }
+
+  /* --- KHO TỪ VỰNG & ÔN TẬP --- */
   function renderVocabStore(filterType) {
     const listEl = document.getElementById('vocab-store-list');
     const titleEl = document.getElementById('store-list-title');
@@ -681,6 +696,19 @@
     }
     localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
     renderVocabStore(filterType);
+    initVocabQueue();
+  }
+
+  function startReviewMastered() {
+    const masteredWords = VOCAB_DATA.filter(v => masteredIds.includes(v.id));
+    if(masteredWords.length === 0) {
+      return alert('Chưa có từ nào được đánh dấu là Đã thuộc để ôn tập!');
+    }
+    vocabQueue = [...masteredWords].sort(() => 0.5 - Math.random()).slice(0, 10);
+    queueIdx = 0;
+    switchTab('vocab', document.querySelector('.nav-btn'));
+    renderVocab();
+    alert('Đã chuyển sang chế độ ôn tập từ đã thuộc!');
   }
 
   /* --- 2. DICTATION (AI AUDIO) --- */
