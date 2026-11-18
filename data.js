@@ -82,6 +82,41 @@ const LESSONS_DATA = [
   // (Mày có thể thêm các chủ đề từ 5 đến 50 tại đây).
 ];
 
+const GRAMMAR_QUESTIONS = [
+    { 
+      tense: "pres_simple", 
+      q: "She usually ______ gel nails for regular clients every morning.", 
+      opts: ["do", "does", "did", "doing"], 
+      ans: 1, 
+      whyWrong: "Bạn chọn sai vì 'did' là thì quá khứ (không phù hợp với 'usually' chỉ thói quen hiện tại), 'do' dùng cho chủ ngữ số nhiều (I, you, we, they), còn 'doing' thiếu trợ động từ.",
+      whyRight: "Đáp án đúng là 'does' vì chủ ngữ 'She' là ngôi thứ 3 số ít ở thì Hiện tại đơn, đi với từ chỉ tần suất 'usually'." 
+    },
+    { 
+      tense: "past_simple", 
+      q: "Yesterday, a Swedish customer ______ a full set of volume lashes.", 
+      opts: ["book", "books", "booked", "has booked"], 
+      ans: 2, 
+      whyWrong: "Sai vì 'Yesterday' (hôm qua) là dấu hiệu nhận biết của thì Quá khứ đơn, do đó không thể dùng các dạng hiện tại như 'book', 'books' hay hiện tại hoàn thành 'has booked'.",
+      whyRight: "Đáp án đúng là 'booked' (chia dạng V-ed ở quá khứ đơn)." 
+    },
+    { 
+      tense: "fut_simple", 
+      q: "Don't worry, I ______ fix that broken nail for you right now.", 
+      opts: ["will", "am", "was", "have"], 
+      ans: 0, 
+      whyWrong: "Sai vì đây là một quyết định giúp đỡ người khác ngay tại thời điểm nói (lời hứa/quyết định nhanh), cấu trúc ngữ pháp bắt buộc phải dùng trợ động từ 'will'.",
+      whyRight: "Đáp án đúng là 'will' + V nguyên mẫu ('will fix')." 
+    },
+    { 
+      tense: "pres_perf", 
+      q: "I ______ as a nail technician for over two years.", 
+      opts: ["work", "worked", "have worked", "am working"], 
+      ans: 2, 
+      whyWrong: "Sai vì cụm từ 'for over two years' (hơn 2 năm nay) chỉ hành động bắt đầu từ quá khứ và kéo dài liên tục đến hiện tại, không dùng hiện tại đơn hay quá khứ đơn đơn thuần.",
+      whyRight: "Đáp án đúng là 'have worked' (thì Hiện tại hoàn thành để chỉ hành động kéo dài tới hiện tại)." 
+    }
+  ];
+
 // 3. LUYỆN NÓI
 const SPEAKING_DATA = [
   { topic: "Tư vấn Nail", en: "What shape and length would you like for your nails today?", vi: "Hôm nay chị muốn làm dáng móng và độ dài như thế nào ạ?" },
