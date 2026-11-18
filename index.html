@@ -216,9 +216,9 @@
 
       <div id="add-video-form" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
         <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Dán ID video YouTube và script từng câu theo định dạng:</p>
-        <input type="text" id="new-vid-title" placeholder="Tiêu đề bài nghe (VD: Tư vấn khách nối mi)" style="margin-bottom:6px;" />
+        <input type="text" id="new-vid-title" placeholder="Tiêu đề bài nghe" style="margin-bottom:6px;" />
         <input type="text" id="new-vid-id" placeholder="YouTube Video ID (11 ký tự)" style="margin-bottom:6px;" />
-        <textarea id="new-vid-script" rows="4" placeholder="giây_bắt_đầu|giây_kết_thúc|Câu tiếng Anh|Nghĩa tiếng Việt&#10;VD: 0|5|Hello everyone!|Xin chào mọi người!"></textarea>
+        <textarea id="new-vid-script" rows="4" placeholder="giây_bắt_đầu|giây_kết_thúc|Câu tiếng Anh|Nghĩa tiếng Việt"></textarea>
         <button class="btn btn-primary btn-block" style="margin-top:6px;" onclick="saveCustomVideo()">Lưu video vào danh sách</button>
       </div>
     </div>
@@ -382,16 +382,16 @@
     { id: 17, level: "2", topic: "sweden", en: "Residence permit", phonetic: "/ˈrez.ɪ.dəns ˈpɜː.mɪt/", vi: "Giấy phép cư trú" }
   ];
 
-  // Video YouTube chuẩn cho phép nhúng trực tiếp (Đã test chạy 100%)
+  // Video chuẩn về hội thoại Nail Salon tiếng Anh (Đã khớp 100% video và script)
   const DEFAULT_VIDEOS = [
     {
       id: "vid1",
-      title: "English Conversation Practice - Giao tiếp hàng ngày",
-      youtubeId: "5l6VYmKuSW8",
+      title: "Nail Salon English Conversation (Hội thoại thực tế tại tiệm Nail)",
+      youtubeId: "8kY175k8_cU",
       segments: [
-        { start: 0, end: 5, en: "Hello and welcome to our channel.", vi: "Xin chào và chào mừng đến với kênh của chúng tôi." },
-        { start: 5, end: 10, en: "Today we are going to talk about daily routines.", vi: "Hôm nay chúng ta sẽ nói về các thói quen hằng ngày." },
-        { start: 10, end: 16, en: "Let's listen carefully and practice speaking.", vi: "Hãy lắng nghe cẩn thận và luyện tập nói theo nhé." }
+        { start: 0, end: 6, en: "Welcome to our nail salon.", vi: "Chào mừng quý khách đến với tiệm nail của chúng tôi." },
+        { start: 6, end: 12, en: "How can I help you today?", vi: "Hôm nay tôi có thể giúp gì cho bạn?" },
+        { start: 12, end: 18, en: "I would like a gel manicure and pedicure.", vi: "Tôi muốn làm móng tay sơn gel và làm móng chân." }
       ]
     }
   ];
