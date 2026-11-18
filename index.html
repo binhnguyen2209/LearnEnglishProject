@@ -1,322 +1,743 @@
-```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SweBeauty English - Học Tiếng Anh Ngành Nail, Mi, Spa & Đời Sống Thụy Điển</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#f0fdfa',
-              100: '#ccfbf1',
-              200: '#99f6e4',
-              300: '#5eead4',
-              400: '#2dd4bf',
-              500: '#14b8a6',
-              600: '#0d9488',
-              700: '#0f766e',
-              800: '#115e59',
-              900: '#134e4a',
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>English for Sweden - Nail, Lash & Spa</title>
   <style>
-    /* Custom scrollbar & subtle transitions */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #ec4899;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
     }
-    ::-webkit-scrollbar-track {
-      background: transparent;
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 80px; }
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: white; padding: 16px; position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.4);
-      border-radius: 9999px;
+    header h1 { font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+    header p { font-size: 12px; opacity: 0.9; margin-top: 4px; }
+    .badge-sweden { background: #facc15; color: #1e3a8a; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 800; }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex; overflow-x: auto; background: white; border-bottom: 1px solid var(--border);
+      position: sticky; top: 68px; z-index: 40; scrollbar-width: none;
     }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(148, 163, 184, 0.7);
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-btn {
+      flex: 0 0 auto; padding: 12px 14px; border: none; background: none;
+      font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer;
+      border-bottom: 3px solid transparent; white-space: nowrap;
     }
-    .tab-active {
-      background-color: #0d9488;
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+    .nav-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: #eff6ff; }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 14px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Cards & Controls */
+    .card {
+      background: var(--card); border-radius: 12px; padding: 16px;
+      margin-bottom: 14px; border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    .dark .tab-active {
-      background-color: #14b8a6;
-      color: #0f172a;
+    .card-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: #1e293b; display: flex; justify-content: space-between; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    select, input[type="text"], textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 14px; background: white; color: var(--text);
     }
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    select:focus, input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+
+    .btn {
+      padding: 10px 14px; border: none; border-radius: 8px; font-size: 13px;
+      font-weight: 600; cursor: pointer; display: inline-flex; align-items: center;
+      justify-content: center; gap: 6px; transition: 0.15s;
     }
-    .recording-pulse {
-      animation: pulse-ring 1.5s infinite;
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: #e2e8f0; color: #1e293b; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-warning { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+    .btn-block { width: 100%; }
+
+    /* Vocab Styles */
+    .word-box { text-align: center; padding: 20px 10px; background: #f1f5f9; border-radius: 10px; margin: 12px 0; }
+    .word-main { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
+    .word-sub { font-size: 13px; color: var(--muted); }
+    .option-btn {
+      width: 100%; text-align: left; padding: 12px; margin-bottom: 8px;
+      background: white; border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 14px; font-weight: 500; cursor: pointer;
     }
+    .option-btn.correct { background: #dcfce7; border-color: var(--success); color: #14532d; font-weight: 700; }
+    .option-btn.wrong { background: #fee2e2; border-color: var(--danger); color: #7f1d1d; }
+
+    /* YouTube Dictation */
+    .video-wrapper {
+      position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
+      border-radius: 10px; background: #000; margin-bottom: 12px;
+    }
+    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .controls-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .diff-result { padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); margin-top: 10px; line-height: 1.6; font-size: 15px; }
+    .word-ok { color: var(--success); font-weight: 700; background: #dcfce7; padding: 1px 4px; border-radius: 4px; }
+    .word-err { color: var(--danger); font-weight: 700; background: #fee2e2; padding: 1px 4px; border-radius: 4px; text-decoration: line-through; }
+    .script-item { padding: 8px; border-bottom: 1px solid var(--border); font-size: 13px; cursor: pointer; }
+    .script-item:hover, .script-item.active-line { background: #eff6ff; }
+
+    /* Grammar Tags */
+    .tense-pill {
+      display: inline-block; padding: 6px 10px; margin: 3px; border-radius: 8px;
+      font-size: 12px; font-weight: 600; border: 1px solid var(--border); background: white; cursor: pointer;
+    }
+    .tense-pill.core { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+    .tense-pill.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* Speaking */
+    .mic-pulse { animation: pulse 1.2s infinite; background: var(--danger) !important; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(220,38,38,0.5); } 70% { box-shadow: 0 0 0 12px rgba(220,38,38,0); } 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); } }
+
+    /* Irregular Table */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { background: #f1f5f9; font-weight: 700; }
+
+    .feedback-box { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; display: none; }
+    .feedback-box.show { display: block; }
+    .fb-ok { background: #dcfce7; color: #14532d; border: 1px solid #86efac; }
+    .fb-err { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
+    .tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #e2e8f0; color: #334155; font-weight: 600; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 font-sans antialiased transition-colors duration-200 min-h-screen flex flex-col">
+<body>
 
-  <!-- Toast Notification Container (Replaces alert) -->
-  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+<header>
+  <h1>
+    <span>🇸🇪 English For Work & Life</span>
+    <span class="badge-sweden">Nail • Lash • Spa</span>
+  </h1>
+  <p>Lộ trình 6 bậc VN • Chuyên ngành làm đẹp & Đời sống Thụy Điển</p>
+</header>
 
-  <!-- Top Header -->
-  <header class="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <!-- Brand -->
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-teal-700 flex items-center justify-center text-white shadow-md">
-          <i class="fa-solid fa-sparkles text-lg"></i>
-        </div>
-        <div>
-          <h1 class="font-bold text-lg leading-tight tracking-tight flex items-center gap-2">
-            SweBeauty <span class="text-brand-600 dark:text-brand-400">English</span>
-            <span class="hidden sm:inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300">🇸🇪 Sweden Prep</span>
-          </h1>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Nail • Nối Mi • Spa & Đời Sống (Khung 6 Bậc VN)</p>
-        </div>
+<div class="nav-tabs">
+  <button class="nav-btn active" onclick="switchTab('vocab')">1. Từ vựng</button>
+  <button class="nav-btn" onclick="switchTab('dictation')">2. Nghe YouTube</button>
+  <button class="nav-btn" onclick="switchTab('grammar')">3. Ngữ pháp (12 Thì)</button>
+  <button class="nav-btn" onclick="switchTab('speaking')">4. Luyện nói</button>
+  <button class="nav-btn" onclick="switchTab('verbs')">5. Bất quy tắc</button>
+  <button class="nav-btn" onclick="switchTab('notebook')">6. Sổ tay & Câu sai</button>
+</div>
+
+<div class="container">
+
+  <!-- ==================== 1. TỪ VỰNG ==================== -->
+  <div id="tab-vocab" class="tab-content active">
+    <div class="card">
+      <div class="card-title">
+        <span>Cài đặt bài học từ vựng</span>
+        <span class="tag" id="vocab-counter">0/0</span>
       </div>
-
-      <!-- Right Controls: Stats & Dark Mode -->
-      <div class="flex items-center gap-2 sm:gap-4">
-        <div class="hidden md:flex items-center gap-3 bg-slate-100 dark:bg-slate-700/60 px-3 py-1.5 rounded-xl text-xs font-medium">
-          <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400" title="Số câu đã hoàn thành">
-            <i class="fa-solid fa-circle-check"></i> <span id="stat-mastered">0</span> đã thuộc
-          </span>
-          <span class="text-slate-300 dark:text-slate-600">|</span>
-          <button onclick="switchTab('notebook'); switchNotebookSubtab('mistakes')" class="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 hover:underline" title="Xem danh sách câu sai cần ôn">
-            <i class="fa-solid fa-triangle-exclamation"></i> <span id="stat-mistakes">0</span> câu sai
-          </button>
-        </div>
-
-        <!-- Speech Rate Global Setting -->
-        <select id="global-voice-rate" onchange="updateVoiceRate(this.value)" title="Tốc độ giọng đọc mẫu" class="text-xs bg-slate-100 dark:bg-slate-700 border-0 rounded-xl px-2.5 py-2 font-medium focus:ring-2 focus:ring-brand-500 cursor-pointer">
-          <option value="0.75">Đọc: 0.75x</option>
-          <option value="0.95" selected>Đọc: Chuẩn</option>
-          <option value="1.15">Đọc: 1.15x</option>
+      <div class="grid-2">
+        <select id="vocab-level" onchange="resetVocab()">
+          <option value="all">Tất cả trình độ (Bậc 1-6)</option>
+          <option value="1">Bậc 1 (A1 - Cơ bản)</option>
+          <option value="2">Bậc 2 (A2 - Sơ cấp)</option>
+          <option value="3">Bậc 3 (B1 - Trung cấp)</option>
+          <option value="4">Bậc 4 (B2 - Trung cao cấp)</option>
         </select>
-
-        <!-- Dark Mode Toggle -->
-        <button id="theme-toggle" onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-200 transition" title="Đổi giao diện Sáng / Tối">
-          <i id="theme-icon" class="fa-solid fa-moon"></i>
-        </button>
+        <select id="vocab-topic" onchange="resetVocab()">
+          <option value="all">Tất cả chủ đề</option>
+          <option value="nail">💅 Chuyên ngành Nail</option>
+          <option value="lash">👁️ Nối mi (Eyelash)</option>
+          <option value="spa">💆‍♀️ Spa & Chăm sóc da</option>
+          <option value="salon">🗣️ Tư vấn khách tại tiệm</option>
+          <option value="sweden">🇸🇪 Cuộc sống Thụy Điển</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <button class="btn btn-primary" id="mode-quiz-btn" onclick="setVocabMode('quiz')">Trắc nghiệm A-B-C-D</button>
+        <button class="btn btn-secondary" id="mode-type-btn" onclick="setVocabMode('type')">Nhìn Việt gõ Anh</button>
       </div>
     </div>
 
-    <!-- Navigation Tabs (Scrollable on Mobile) -->
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 overflow-x-auto flex items-center gap-2 no-scrollbar border-t border-slate-100 dark:border-slate-700/60">
-      <button data-tab="vocab" onclick="switchTab('vocab')" class="nav-btn tab-active whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
-        <i class="fa-solid fa-book-open"></i> 1. Từ Vựng
-      </button>
-      <button data-tab="listening" onclick="switchTab('listening')" class="nav-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-2">
-        <i class="fa-brands fa-youtube text-rose-500"></i> 2. Nghe YouTube
-      </button>
-      <button data-tab="grammar" onclick="switchTab('grammar')" class="nav-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-2">
-        <i class="fa-solid fa-spell-check"></i> 3. Ngữ Pháp (12 Thì)
-      </button>
-      <button data-tab="speaking" onclick="switchTab('speaking')" class="nav-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-2">
-        <i class="fa-solid fa-microphone-lines"></i> 4. Luyện Nói
-      </button>
-      <button data-tab="verbs" onclick="switchTab('verbs')" class="nav-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-2">
-        <i class="fa-solid fa-table-list"></i> 5. Bất Quy Tắc
-      </button>
-      <button data-tab="notebook" onclick="switchTab('notebook')" class="nav-btn whitespace-nowrap px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-2 relative">
-        <i class="fa-solid fa-bookmark"></i> 6. Sổ Tay & Câu Sai
-        <span id="nav-mistake-badge" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
-      </button>
-    </nav>
-  </header>
-
-  <!-- Main Content Container -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-
-    <!-- =====================================================================
-         MODULE 1: HỌC TỪ VỰNG (VOCABULARY)
-    ====================================================================== -->
-    <section id="section-vocab" class="module-section space-y-6">
-      <!-- Filter & Mode Bar -->
-      <div class="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div class="flex flex-wrap items-center gap-3">
-          <div>
-            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Trình độ (Khung 6 bậc)</label>
-            <select id="vocab-level-filter" onchange="filterVocab()" class="bg-slate-100 dark:bg-slate-700 border-0 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-brand-500">
-              <option value="all">Tất cả 6 Bậc</option>
-              <option value="1">Bậc 1 (A1 - Sơ cấp)</option>
-              <option value="2">Bậc 2 (A2 - Cơ bản)</option>
-              <option value="3">Bậc 3 (B1 - Trung cấp)</option>
-              <option value="4">Bậc 4 (B2 - Trung cao cấp)</option>
-              <option value="5">Bậc 5 (C1 - Cao cấp)</option>
-              <option value="6">Bậc 6 (C2 - Thành thạo)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Chuyên ngành / Chủ đề</label>
-            <select id="vocab-topic-filter" onchange="filterVocab()" class="bg-slate-100 dark:bg-slate-700 border-0 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-brand-500">
-              <option value="all">Tất cả chủ đề</option>
-              <option value="nail">💅 Làm Nail & Chăm sóc móng</option>
-              <option value="lash">👁️ Nối Mi (Lash Extensions)</option>
-              <option value="spa">🧖‍♀️ Spa & Chăm sóc da mặt</option>
-              <option value="salon">💬 Giao tiếp khách hàng tại tiệm</option>
-              <option value="sweden">🇸🇪 Đời sống tại Thụy Điển</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Mode Switcher -->
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <div class="bg-slate-100 dark:bg-slate-700 p-1 rounded-xl flex">
-            <button id="vocab-mode-type" onclick="setVocabMode('type')" class="flex-1 sm:flex-none px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white dark:bg-slate-600 shadow-sm text-brand-700 dark:text-brand-300 transition">
-              <i class="fa-solid fa-keyboard mr-1"></i> Nhìn Việt gõ Anh
-            </button>
-            <button id="vocab-mode-mc" onclick="setVocabMode('mc')" class="flex-1 sm:flex-none px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 transition">
-              <i class="fa-solid fa-list-check mr-1"></i> Trắc nghiệm A-B-C-D
-            </button>
-          </div>
+    <div class="card" id="vocab-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="tag" id="v-badge">Bậc 1 • Nail</span>
+        <div>
+          <button class="btn btn-sm btn-secondary" onclick="speakText(currentVocab.en)">🔊 Nghe</button>
+          <button class="btn btn-sm btn-warning" onclick="toggleStarVocab()">⭐ Lưu</button>
         </div>
       </div>
 
-      <!-- Vocab Practice Card -->
-      <div class="max-w-3xl mx-auto">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-md border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <!-- Card Header -->
-          <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span id="vocab-badge-level" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-300">Bậc 1 (A1)</span>
-              <span id="vocab-badge-topic" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-200/70 text-slate-700 dark:bg-slate-700 dark:text-slate-300">Nail</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Từ <span id="vocab-progress-text">1 / 10</span></span>
-              <button onclick="toggleBookmarkVocab()" id="vocab-bookmark-btn" class="text-slate-400 hover:text-amber-500 transition text-lg" title="Lưu từ này vào Sổ tay">
-                <i class="fa-regular fa-star"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Card Body -->
-          <div class="p-6 sm:p-10 text-center space-y-6">
-            <!-- Prompt Area -->
-            <div class="space-y-2">
-              <p id="vocab-instruction" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Gõ từ tiếng Anh tương ứng với nghĩa sau:</p>
-              <div class="flex items-center justify-center gap-3">
-                <h2 id="vocab-question" class="text-2xl sm:text-4xl font-extrabold text-slate-800 dark:text-white tracking-tight">Dũa móng tay</h2>
-                <button id="vocab-speak-prompt-btn" onclick="speakCurrentVocab()" class="hidden w-11 h-11 rounded-full bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-300 hover:bg-brand-200 flex items-center justify-center transition" title="Nghe phát âm">
-                  <i class="fa-solid fa-volume-high text-lg"></i>
-                </button>
-              </div>
-              <p id="vocab-sub-info" class="text-sm text-slate-500 dark:text-slate-400 font-mono"></p>
-            </div>
-
-            <!-- Mode 1: Typing Input -->
-            <div id="vocab-type-area" class="max-w-md mx-auto space-y-3">
-              <div class="relative">
-                <input type="text" id="vocab-input" autocomplete="off" spellcheck="false" placeholder="Nhập từ tiếng Anh tại đây..." 
-                  onkeydown="if(event.key === 'Enter') checkVocabType()"
-                  class="w-full text-center text-lg sm:text-xl font-semibold px-4 py-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 outline-none transition" />
-              </div>
-              <div class="flex items-center justify-center gap-2">
-                <button onclick="showVocabHint()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 hover:bg-amber-100 transition">
-                  <i class="fa-regular fa-lightbulb mr-1"></i> Gợi ý chữ cái
-                </button>
-                <button onclick="checkVocabType()" class="px-6 py-2.5 rounded-xl text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-500/20 transition">
-                  Kiểm tra (Enter)
-                </button>
-              </div>
-            </div>
-
-            <!-- Mode 2: Multiple Choice A, B, C, D -->
-            <div id="vocab-mc-area" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto text-left">
-              <!-- Options injected via JS -->
-            </div>
-
-            <!-- Feedback & Context Box -->
-            <div id="vocab-feedback" class="hidden max-w-xl mx-auto p-4 rounded-2xl text-left transition-all">
-              <div class="flex items-start justify-between gap-3">
-                <div>
-                  <div class="flex items-center gap-2">
-                    <span id="vocab-fb-status" class="font-bold text-base"></span>
-                    <span id="vocab-fb-word" class="font-extrabold text-lg text-brand-700 dark:text-brand-300"></span>
-                    <span id="vocab-fb-ipa" class="text-xs font-mono text-slate-500"></span>
-                  </div>
-                  <p id="vocab-fb-meaning" class="text-sm font-medium text-slate-700 dark:text-slate-300 mt-0.5"></p>
-                </div>
-                <button onclick="speakCurrentVocab()" class="w-10 h-10 shrink-0 rounded-xl bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center text-brand-600 dark:text-brand-400 hover:scale-105 transition" title="Nghe lại từ này">
-                  <i class="fa-solid fa-volume-high"></i>
-                </button>
-              </div>
-              <div class="mt-3 pt-3 border-t border-slate-200/70 dark:border-slate-700/70">
-                <p class="text-xs uppercase font-bold text-slate-400 mb-1">Ví dụ thực tế tại tiệm / Thụy Điển:</p>
-                <div class="flex items-center justify-between gap-2">
-                  <p id="vocab-fb-example" class="text-sm italic text-slate-700 dark:text-slate-200"></p>
-                  <button onclick="speakText(document.getElementById('vocab-fb-example').textContent)" class="text-xs px-2.5 py-1 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 shrink-0">
-                    <i class="fa-solid fa-play mr-1"></i> Nghe câu
-                  </button>
-                </div>
-                <p id="vocab-fb-example-vi" class="text-xs text-slate-500 dark:text-slate-400 mt-1"></p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Footer Navigation -->
-          <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-            <button onclick="prevVocab()" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-700 transition">
-              <i class="fa-solid fa-arrow-left mr-1"></i> Từ trước
-            </button>
-            <button onclick="nextVocab()" class="px-5 py-2 rounded-xl text-sm font-bold bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 hover:opacity-90 transition">
-              Từ tiếp theo <i class="fa-solid fa-arrow-right ml-1"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- =====================================================================
-         MODULE 2: HỌC NGHE YOUTUBE CHÉP CHÍNH TẢ (YOUTUBE DICTATION)
-    ====================================================================== -->
-    <section id="section-listening" class="module-section hidden space-y-6">
-      <!-- Top Bar: Select Video Lesson & Add Custom Video -->
-      <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
-          <label class="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">Chọn bài nghe:</label>
-          <select id="yt-lesson-select" onchange="loadYtLesson(this.value)" class="flex-1 bg-slate-100 dark:bg-slate-700 border-0 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-brand-500">
-            <!-- Populated by JS -->
-          </select>
-        </div>
-        <button onclick="toggleAddYtModal(true)" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300 hover:bg-brand-100 transition flex items-center justify-center gap-2 shrink-0">
-          <i class="fa-solid fa-plus"></i> Thêm Video YouTube mới
-        </button>
+      <div class="word-box">
+        <div class="word-main" id="v-prompt">Loading...</div>
+        <div class="word-sub" id="v-phonetic"></div>
       </div>
 
-      <!-- Main Split Layout: Video Player + Dictation Box -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Left Column: YouTube Embed & Video Controls -->
-        <div class="lg:col-span-6 space-y-4">
-          <div class="bg-black rounded-2xl overflow-hidden shadow-lg aspect-video relative border border-slate-200 dark:border-slate-700">
-            <div id="yt-player-container" class="w-full h-full"></div>
-          </div>
+      <!-- Mode Quiz -->
+      <div id="v-quiz-area"></div>
 
-          <!-- Video Playback Speed & Info -->
-          <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <span id="yt-lesson-level" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">Bậc 2 (A2)</span>
-              <p id="yt-lesson-desc" class="text-xs text-slate-500 dark:text-slate-400 mt-1.5">Hội t
+      <!-- Mode Type -->
+      <div id="v-type-area" style="display:none;">
+        <input type="text" id="v-input" placeholder="Gõ từ tiếng Anh tương ứng..." onkeyup="if(event.key==='Enter') checkTypedVocab()" />
+        <button class="btn btn-primary btn-block" style="margin-top:8px;" onclick="checkTypedVocab()">Kiểm tra đáp án</button>
+      </div>
+
+      <div id="v-feedback" class="feedback-box"></div>
+
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button class="btn btn-secondary btn-block" onclick="nextVocab()">Câu tiếp theo ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. NGHE YOUTUBE CHÉP CHÍNH TẢ ==================== -->
+  <div id="tab-dictation" class="tab-content">
+    <div class="card">
+      <div class="card-title">
+        <span>Chọn video luyện nghe thực tế</span>
+        <button class="btn btn-sm btn-success" onclick="toggleAddVideoForm()">+ Thêm Video</button>
+      </div>
+      <select id="video-select" onchange="loadSelectedVideo()"></select>
+
+      <!-- Form thêm video YouTube mới -->
+      <div id="add-video-form" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
+        <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Dán ID video YouTube (ví dụ: <code>dQw4w9WgXcQ</code>) và các câu thoại kèm giây bắt đầu - kết thúc:</p>
+        <input type="text" id="new-vid-title" placeholder="Tiêu đề bài nghe (VD: Tư vấn khách nối mi)" style="margin-bottom:6px;" />
+        <input type="text" id="new-vid-id" placeholder="YouTube Video ID (11 ký tự sau v=)" style="margin-bottom:6px;" />
+        <textarea id="new-vid-script" rows="4" placeholder="Định dạng mỗi dòng: giây_bắt_đầu|giây_kết_thúc|Câu tiếng Anh|Nghĩa tiếng Việt&#10;VD: 0|4.5|Welcome to our nail salon!|Chào mừng đến với tiệm nail của chúng tôi!"></textarea>
+        <button class="btn btn-primary btn-block" style="margin-top:6px;" onclick="saveCustomVideo()">Lưu video vào danh sách</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="video-wrapper">
+        <div id="yt-player"></div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <strong style="font-size:14px;" id="dict-progress">Câu 1 / 5</strong>
+        <div>
+          <button class="btn btn-sm btn-secondary" onclick="setSpeed(0.75)">0.75x</button>
+          <button class="btn btn-sm btn-secondary" onclick="setSpeed(1.0)">1.0x</button>
+          <button class="btn btn-sm btn-secondary" onclick="setSpeed(1.25)">1.25x</button>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <button class="btn btn-primary" onclick="playCurrentSegment()">▶ Nghe câu này (Ctrl)</button>
+        <button class="btn btn-secondary" onclick="prevSegment()">⬅ Trước</button>
+        <button class="btn btn-secondary" onclick="nextSegment()">Sau ➔</button>
+        <button class="btn btn-warning" onclick="toggleFullScript()">👁️ Hiện/Ẩn Script</button>
+      </div>
+
+      <textarea id="dict-input" rows="2" placeholder="Nghe đoạn video vừa phát và gõ lại chính xác từng từ tiếng Anh..." onkeydown="handleDictKey(event)"></textarea>
+      <button class="btn btn-success btn-block" style="margin-top:8px;" onclick="checkDictation()">Kiểm tra chính tả (Enter)</button>
+
+      <div id="dict-result" class="diff-result" style="display:none;"></div>
+
+      <div id="full-script-box" style="display:none; margin-top:12px; max-height:200px; overflow-y:auto; border:1px solid var(--border); border-radius:8px;"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 3. NGỮ PHÁP 12 THÌ ==================== -->
+  <div id="tab-grammar" class="tab-content">
+    <div class="card">
+      <div class="card-title">Chọn thì cần luyện tập</div>
+      <p style="font-size:12px; color:var(--primary); font-weight:700; margin-bottom:4px;">★ 4 Thì Cốt Lõi Thực Tế (Mục tiêu 300 câu/thì):</p>
+      <div id="core-tenses"></div>
+      <p style="font-size:12px; color:var(--muted); font-weight:700; margin:8px 0 4px;">8 Thì Bổ Trợ (Mục tiêu 100 câu/thì):</p>
+      <div id="other-tenses"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span id="g-tense-name">Hiện tại đơn (Present Simple)</span>
+        <span class="tag" id="g-target-badge">0 / 300 câu</span>
+      </div>
+      <div style="background:#f1f5f9; padding:10px; border-radius:8px; font-size:13px; margin-bottom:12px;" id="g-formula">
+        Công thức: S + V(s/es) | Dùng diễn tả thói quen, lịch trình, sự thật.
+      </div>
+
+      <p style="font-size:15px; font-weight:600; margin-bottom:12px;" id="g-question">Loading question...</p>
+      <div id="g-options"></div>
+      <div id="g-feedback" class="feedback-box"></div>
+      <button class="btn btn-secondary btn-block" style="margin-top:10px;" onclick="nextGrammar()">Câu bài tập tiếp theo ➔</button>
+    </div>
+  </div>
+
+  <!-- ==================== 4. LUYỆN NÓI (SPEAKING) ==================== -->
+  <div id="tab-speaking" class="tab-content">
+    <div class="card">
+      <div class="card-title">Phương pháp luyện nói phản xạ nhanh</div>
+      <p style="font-size:13px; color:var(--muted); line-height:1.5;">
+        1. <b>Shadowing (Nhại giọng):</b> Bấm nghe mẫu câu chuẩn -> Bấm giữ/nhấn Micro và đọc to lại y hệt ngữ điệu. Máy sẽ chấm điểm từng từ bạn phát âm.<br/>
+        2. <b>Role-play (Phản xạ khách hàng):</b> Đọc câu hỏi của khách Tây -> Tự trả lời thành tiếng -> Bấm xem gợi ý câu trả lời chuẩn lịch sự kiểu Thụy Điển.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Luyện phát âm & Chấm điểm qua Micro</span>
+        <span class="tag" id="sp-topic">Tư vấn Nail/Mi</span>
+      </div>
+      <div class="word-box">
+        <div class="word-main" style="font-size:18px;" id="sp-sentence">"What shape and length would you like for your nails today?"</div>
+        <div class="word-sub" id="sp-meaning">Hôm nay chị muốn làm dáng móng và độ dài như thế nào ạ?</div>
+      </div>
+
+      <div class="grid-2">
+        <button class="btn btn-secondary" onclick="speakText(currentSpeak.en, 0.9)">🔊 Nghe mẫu</button>
+        <button class="btn btn-danger" id="mic-btn" onclick="startSpeechRecognition()">🎙️ Bấm để nói</button>
+      </div>
+
+      <div id="sp-result" class="feedback-box"></div>
+
+      <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+        <p style="font-size:13px; font-weight:700; color:#1e293b;">💬 Tình huống khách hỏi thêm:</p>
+        <p style="font-size:13px; margin:4px 0;" id="sp-roleplay-q">Khách: "How long will the eyelash extensions last?"</p>
+        <button class="btn btn-sm btn-warning" onclick="document.getElementById('sp-roleplay-a').style.display='block'">Xem câu trả lời mẫu</button>
+        <p id="sp-roleplay-a" style="display:none; margin-top:6px; font-size:13px; color:var(--success); font-weight:600;">
+          Mẫu: "They usually last about 3 to 4 weeks, depending on how you care for them. I recommend a refill after 3 weeks."
+        </p>
+      </div>
+
+      <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="nextSpeaking()">Mẫu câu giao tiếp tiếp theo ➔</button>
+    </div>
+  </div>
+
+  <!-- ==================== 5. ĐỘNG TỪ BẤT QUY TẮC ==================== -->
+  <div id="tab-verbs" class="tab-content">
+    <div class="card">
+      <div class="card-title">Tra cứu Động từ bất quy tắc</div>
+      <input type="text" id="verb-search" placeholder="Gõ động từ tiếng Anh (VD: go, take, make) hoặc nghĩa tiếng Việt..." oninput="filterVerbs()" />
+      <div style="margin-top:12px; overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>V1 (Nguyên mẫu)</th>
+              <th>V2 (Quá khứ)</th>
+              <th>V3 (Phân từ 2)</th>
+              <th>Nghĩa tiếng Việt</th>
+            </tr>
+          </thead>
+          <tbody id="verb-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 6. SỔ TAY MẪU CÂU & ÔN CÂU SAI ==================== -->
+  <div id="tab-notebook" class="tab-content">
+    <div class="card">
+      <div class="card-title">
+        <span>🚨 Ngân hàng câu làm sai (Tự động lưu)</span>
+        <button class="btn btn-sm btn-danger" onclick="clearMistakes()">Xóa hết</button>
+      </div>
+      <div id="mistake-list" style="font-size:13px; color:var(--muted);">Chưa có câu sai nào. Hãy luyện tập các tab kia nhé!</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📖 Sổ tay mẫu câu "Sống còn" tại tiệm Thụy Điển</div>
+      <div id="cheatsheet-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+  /* ================= DỮ LIỆU MẪU (SẼ MỞ RỘNG THÊM Ở BƯỚC SAU) ================= */
+  const VOCAB_DATA = [
+    { id: 1, level: "1", topic: "nail", en: "Cuticle", phonetic: "/ˈkjuː.tɪ.kəl/", vi: "Da chết quanh móng" },
+    { id: 2, level: "1", topic: "nail", en: "Nail file", phonetic: "/neɪl faɪl/", vi: "Dũa móng tay" },
+    { id: 3, level: "2", topic: "nail", en: "Gel polish", phonetic: "/dʒel ˈpɒl.ɪʃ/", vi: "Sơn gel" },
+    { id: 4, level: "2", topic: "nail", en: "Acrylic extensions", phonetic: "/əˈkrɪl.ɪk ɪkˈsten.ʃənz/", vi: "Đắp móng bột" },
+    { id: 5, level: "2", topic: "nail", en: "Almond shape", phonetic: "/ˈɑː.mənd ʃeɪp/", vi: "Dáng móng hạnh nhân" },
+    { id: 6, level: "1", topic: "lash", en: "Eyelash extensions", phonetic: "/ˈaɪ.læʃ ɪkˈsten.ʃənz/", vi: "Nối mi" },
+    { id: 7, level: "2", topic: "lash", en: "Tweezers", phonetic: "/ˈtwiː.zəz/", vi: "Nhíp nối mi" },
+    { id: 8, level: "2", topic: "lash", en: "Lash adhesive", phonetic: "/læʃ ədˈhiː.sɪv/", vi: "Keo nối mi" },
+    { id: 9, level: "3", topic: "lash", en: "Refill / Infill", phonetic: "/ˈriː.fɪl/", vi: "Dặm lại mi" },
+    { id: 10, level: "1", topic: "spa", en: "Facial cleansing", phonetic: "/ˈfeɪ.ʃəl ˈklen.zɪŋ/", vi: "Làm sạch da mặt" },
+    { id: 11, level: "2", topic: "spa", en: "Blackhead extraction", phonetic: "/ˈblæk.hed ɪkˈstræk.ʃən/", vi: "Nặn mụn đầu đen" },
+    { id: 12, level: "2", topic: "spa", en: "Shoulder and neck massage", phonetic: "/ˈʃəʊl.dər ənd nek ˈmæs.ɑːʒ/", vi: "Massage cổ vai gáy" },
+    { id: 13, level: "1", topic: "salon", en: "Appointment", phonetic: "/əˈpɔɪnt.mənt/", vi: "Lịch hẹn" },
+    { id: 14, level: "2", topic: "salon", en: "Does the pressure feel okay?", phonetic: "/dʌz ðə ˈpreʃ.ər fiːl əʊˈkeɪ/", vi: "Lực ấn như vậy có vừa không ạ?" },
+    { id: 15, level: "1", topic: "sweden", en: "Receipt", phonetic: "/rɪˈsiːt/", vi: "Hóa đơn / Biên lai" },
+    { id: 16, level: "2", topic: "sweden", en: "Public transport", phonetic: "/ˈpʌb.lɪk ˈtræn.spɔːt/", vi: "Phương tiện công cộng (tàu/xe buýt)" },
+    { id: 17, level: "2", topic: "sweden", en: "Residence permit", phonetic: "/ˈrez.ɪ.dəns ˈpɜː.mɪt/", vi: "Giấy phép cư trú" }
+  ];
+
+const DEFAULT_VIDEOS = [
+    {
+      id: "vid1",
+      title: "Bậc 1-2: Giao tiếp cơ bản tại tiệm Nail (Nail Salon English)",
+      youtubeId: "7sDY4m8KNLc",
+      segments: [
+        { start: 0, end: 5, en: "Hello, welcome to our nail salon.", vi: "Xin chào, chào mừng bạn đến với tiệm nail của chúng tôi." },
+        { start: 5, end: 10, en: "Do you have an appointment today?", vi: "Hôm nay bạn có đặt lịch hẹn trước không?" },
+        { start: 10, end: 16, en: "Please have a seat and choose your color.", vi: "Mời bạn ngồi và chọn màu sơn nhé." }
+      ]
+    },
+    {
+      id: "vid2",
+      title: "Bậc 2-3: Tư vấn khách nối mi (Lash Consultation)",
+      youtubeId: "ysz5S6PUM-U",
+      segments: [
+        { start: 0, end: 6, en: "What style of lashes are you looking for?", vi: "Bạn đang muốn nối dáng mi kiểu nào ạ?" },
+        { start: 6, end: 12, en: "I want something natural for everyday wear.", vi: "Tôi muốn kiểu nào tự nhiên để đi làm hằng ngày." }
+      ]
+    }
+  ];
+
+  const TENSES = [
+    { id: "pres_simple", name: "1. Hiện tại đơn", target: 300, core: true, formula: "S + V(s/es) | Dùng cho thói quen, sự thật hiển nhiên, lịch cố định." },
+    { id: "past_simple", name: "2. Quá khứ đơn", target: 300, core: true, formula: "S + V2/ed | Hành động đã xảy ra và kết thúc trong quá khứ." },
+    { id: "fut_simple", name: "3. Tương lai đơn", target: 300, core: true, formula: "S + will + V0 | Quyết định ngay lúc nói, dự đoán, lời hứa." },
+    { id: "pres_perf", name: "4. Hiện tại hoàn thành", target: 300, core: true, formula: "S + have/has + V3/ed | Hành động từ quá khứ kéo dài tới hiện tại hoặc vừa mới xảy ra." },
+    { id: "pres_cont", name: "5. Hiện tại tiếp diễn", target: 100, core: false, formula: "S + am/is/are + V-ing | Đang xảy ra ngay lúc nói." },
+    { id: "past_cont", name: "6. Quá khứ tiếp diễn", target: 100, core: false, formula: "S + was/were + V-ing | Đang xảy ra tại một thời điểm cụ thể trong quá khứ." },
+    { id: "fut_cont", name: "7. Tương lai tiếp diễn", target: 100, core: false, formula: "S + will be + V-ing | Sẽ đang diễn ra tại một thời điểm trong tương lai." },
+    { id: "past_perf", name: "8. Quá khứ hoàn thành", target: 100, core: false, formula: "S + had + V3/ed | Xảy ra trước một hành động khác trong quá khứ." },
+    { id: "fut_perf", name: "9. Tương lai hoàn thành", target: 100, core: false, formula: "S + will have + V3/ed | Hoàn tất trước một mốc thời gian tương lai." },
+    { id: "pres_perf_cont", name: "10. HT Hoàn thành tiếp diễn", target: 100, core: false, formula: "S + have/has been + V-ing | Nhấn mạnh tính liên tục của hành động." },
+    { id: "past_perf_cont", name: "11. QK Hoàn thành tiếp diễn", target: 100, core: false, formula: "S + had been + V-ing | Liên tục trước một mốc quá khứ." },
+    { id: "fut_perf_cont", name: "12. TL Hoàn thành tiếp diễn", target: 100, core: false, formula: "S + will have been + V-ing | Liên tục tính đến một mốc tương lai." }
+  ];
+
+  const GRAMMAR_QUESTIONS = [
+    { tense: "pres_simple", q: "She usually ______ gel nails for regular clients every morning.", opts: ["do", "does", "did", "doing"], ans: 1, exp: "Có dấu hiệu 'usually' và 'every morning' (thói quen) + chủ ngữ số ít 'She' -> dùng does." },
+    { tense: "pres_simple", q: "Our salon ______ at 9:00 AM from Monday to Saturday.", opts: ["open", "opens", "opened", "opening"], ans: 1, exp: "Lịch trình cố định của tiệm -> dùng Hiện tại đơn 'opens'." },
+    { tense: "past_simple", q: "Yesterday, a Swedish customer ______ a full set of volume lashes.", opts: ["book", "books", "booked", "has booked"], ans: 2, exp: "Có 'Yesterday' (thời gian xác định trong quá khứ) -> chia Quá khứ đơn 'booked'." },
+    { tense: "fut_simple", q: "Don't worry, I ______ fix that broken nail for you right now.", opts: ["will", "am", "was", "have"], ans: 0, exp: "Quyết định giúp khách ngay tại thời điểm nói -> dùng 'will + V0'." },
+    { tense: "pres_perf", q: "I ______ as a nail and lash technician for over two years.", opts: ["work", "worked", "have worked", "am working"], ans: 2, exp: "Có 'for over two years' (kéo dài từ quá khứ đến hiện tại) -> dùng Hiện tại hoàn thành 'have worked'." },
+    { tense: "pres_cont", q: "Please wait a moment, she ______ a facial massage for another client.", opts: ["gives", "is giving", "gave", "will give"], ans: 1, exp: "Hành động đang diễn ra ngay lúc nói -> dùng Hiện tại tiếp diễn 'is giving'." }
+  ];
+
+  const SPEAKING_DATA = [
+    { topic: "Tư vấn Nail", en: "What shape and length would you like for your nails today?", vi: "Hôm nay chị muốn làm dáng móng và độ dài như thế nào ạ?", rq: "Khách: How much is a gel manicure with removal?", ra: "Mẫu: A gel manicure is 450 SEK, and removal is an extra 100 SEK." },
+    { topic: "Nối mi", en: "Please keep your eyes closed during the whole procedure.", vi: "Chị vui lòng nhắm mắt trong suốt quá trình nối mi nhé.", rq: "Khách: How long will the eyelash extensions last?", ra: "Mẫu: They usually last 3 to 4 weeks. I recommend a refill after 3 weeks." },
+    { topic: "Spa & Massage", en: "Let me know if the water temperature or massage pressure is too strong.", vi: "Hãy báo em biết nếu nhiệt độ nước hoặc lực massage hơi mạnh nhé.", rq: "Khách: That feels super relaxing, thank you!", ra: "Mẫu: I am glad you enjoy it. Just relax and take your time." },
+    { topic: "Đời sống Thụy Điển", en: "Excuse me, does this train go to the Central Station?", vi: "Xin lỗi, chuyến tàu này có đi đến Ga Trung Tâm không ạ?", rq: "Người dân: Yes, it stops there in ten minutes.", ra: "Mẫu: Thank you so much for your help!" }
+  ];
+
+  const IRREGULAR_VERBS = [
+    { v1: "be", v2: "was / were", v3: "been", vi: "thì, là, ở" },
+    { v1: "begin", v2: "began", v3: "begun", vi: "bắt đầu" },
+    { v1: "break", v2: "broke", v3: "broken", vi: "làm gãy, vỡ (móng)" },
+    { v1: "bring", v2: "brought", v3: "brought", vi: "mang đến" },
+    { v1: "buy", v2: "bought", v3: "bought", vi: "mua" },
+    { v1: "choose", v2: "chose", v3: "chosen", vi: "chọn lựa (màu sơn)" },
+    { v1: "come", v2: "came", v3: "come", vi: "đến" },
+    { v1: "cut", v2: "cut", v3: "cut", vi: "cắt (da, móng)" },
+    { v1: "do", v2: "did", v3: "done", vi: "làm" },
+    { v1: "feel", v2: "felt", v3: "felt", vi: "cảm thấy" },
+    { v1: "find", v2: "found", v3: "found", vi: "tìm thấy" },
+    { v1: "get", v2: "got", v3: "got / gotten", vi: "nhận được, lấy" },
+    { v1: "give", v2: "gave", v3: "given", vi: "đưa, tặng" },
+    { v1: "go", v2: "went", v3: "gone", vi: "đi" },
+    { v1: "have", v2: "had", v3: "had", vi: "có" },
+    { v1: "keep", v2: "kept", v3: "kept", vi: "giữ (mi bền)" },
+    { v1: "know", v2: "knew", v3: "known", vi: "biết" },
+    { v1: "make", v2: "made", v3: "made", vi: "làm, tạo ra" },
+    { v1: "pay", v2: "paid", v3: "paid", vi: "thanh toán, trả tiền" },
+    { v1: "put", v2: "put", v3: "put", vi: "đặt, để, sơn lên" },
+    { v1: "see", v2: "saw", v3: "seen", vi: "nhìn thấy" },
+    { v1: "speak", v2: "spoke", v3: "spoken", vi: "nói tiếng Anh" },
+    { v1: "take", v2: "took", v3: "taken", vi: "cầm, lấy, mất (thời gian)" },
+    { v1: "tell", v2: "told", v3: "told", vi: "kể, bảo" },
+    { v1: "understand", v2: "understood", v3: "understood", vi: "hiểu" }
+  ];
+
+  const CHEAT_SHEET = [
+    { cat: "👋 Đón khách & Mời nước", items: ["Hi! Welcome in. How are you doing today?", "Would you like some water, tea, or coffee while you wait?", "Please wash your hands over there first."] },
+    { cat: "💅 Khi làm Nail & Nối mi", items: ["Is this length okay for you?", "Please put your hand inside the UV lamp.", "Avoid getting your lashes wet for the first 24 hours."] },
+    { cat: "💳 Thanh toán & Hẹn lại", items: ["Would you like to pay by card or Swish?", "Would you like to book your refill appointment now?", "Thank you so much! Have a lovely day!"] }
+  ];
+
+  /* ================= STATE & LOGIC ================= */
+  let filteredVocab = [...VOCAB_DATA];
+  let vocabIdx = 0;
+  let vocabMode = 'quiz';
+  let currentVocab = filteredVocab[0];
+
+  let videos = JSON.parse(localStorage.getItem('custom_videos')) || DEFAULT_VIDEOS;
+  let currentVideo = videos[0];
+  let currentSegIdx = 0;
+  let player = null;
+  let segmentTimer = null;
+
+  let currentTense = 'pres_simple';
+  let filteredGrammar = [];
+  let grammarIdx = 0;
+
+  let speakIdx = 0;
+  let currentSpeak = SPEAKING_DATA[0];
+
+  let mistakes = JSON.parse(localStorage.getItem('eng_mistakes')) || [];
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tabId).classList.add('active');
+    event.target.classList.add('active');
+    if (tabId === 'notebook') renderNotebook();
+  }
+
+  /* --- 1. VOCAB LOGIC --- */
+  function resetVocab() {
+    const lvl = document.getElementById('vocab-level').value;
+    const top = document.getElementById('vocab-topic').value;
+    filteredVocab = VOCAB_DATA.filter(v => (lvl === 'all' || v.level === lvl) && (top === 'all' || v.topic === top));
+    if (filteredVocab.length === 0) filteredVocab = [...VOCAB_DATA];
+    vocabIdx = 0;
+    renderVocab();
+  }
+
+  function setVocabMode(mode) {
+    vocabMode = mode;
+    document.getElementById('mode-quiz-btn').className = mode === 'quiz' ? 'btn btn-primary' : 'btn btn-secondary';
+    document.getElementById('mode-type-btn').className = mode === 'type' ? 'btn btn-primary' : 'btn btn-secondary';
+    document.getElementById('v-quiz-area').style.display = mode === 'quiz' ? 'block' : 'none';
+    document.getElementById('v-type-area').style.display = mode === 'type' ? 'block' : 'none';
+    renderVocab();
+  }
+
+  function renderVocab() {
+    currentVocab = filteredVocab[vocabIdx % filteredVocab.length];
+    document.getElementById('vocab-counter').innerText = `${(vocabIdx % filteredVocab.length) + 1}/${filteredVocab.length}`;
+    document.getElementById('v-badge').innerText = `Bậc ${currentVocab.level} • ${currentVocab.topic.toUpperCase()}`;
+    document.getElementById('v-feedback').className = 'feedback-box';
+
+    if (vocabMode === 'quiz') {
+      document.getElementById('v-prompt').innerText = currentVocab.en;
+      document.getElementById('v-phonetic').innerText = currentVocab.phonetic;
+      const others = VOCAB_DATA.filter(x => x.id !== currentVocab.id).sort(() => 0.5 - Math.random()).slice(0, 3);
+      const choices = [...others, currentVocab].sort(() => 0.5 - Math.random());
+      const letters = ['A', 'B', 'C', 'D'];
+      document.getElementById('v-quiz-area').innerHTML = choices.map((c, i) =>
+        `<button class="option-btn" onclick="checkQuizVocab(this, ${c.id === currentVocab.id})"><b>${letters[i]}.</b> ${c.vi}</button>`
+      ).join('');
+    } else {
+      document.getElementById('v-prompt').innerText = currentVocab.vi;
+      document.getElementById('v-phonetic').innerText = "(Gõ từ tiếng Anh tương ứng)";
+      document.getElementById('v-input').value = '';
+    }
+  }
+
+  function checkQuizVocab(btn, isCorrect) {
+    const fb = document.getElementById('v-feedback');
+    if (isCorrect) {
+      btn.classList.add('correct');
+      fb.className = 'feedback-box show fb-ok';
+      fb.innerHTML = `✅ Chính xác! <b>${currentVocab.en}</b> = ${currentVocab.vi}`;
+      speakText(currentVocab.en);
+    } else {
+      btn.classList.add('wrong');
+      fb.className = 'feedback-box show fb-err';
+      fb.innerHTML = `❌ Sai rồi! Đáp án đúng là: <b>${currentVocab.vi}</b>`;
+      addMistake(`Từ vựng: ${currentVocab.en} -> ${currentVocab.vi}`);
+    }
+  }
+
+  function checkTypedVocab() {
+    const val = document.getElementById('v-input').value.trim().toLowerCase();
+    const ans = currentVocab.en.toLowerCase();
+    const fb = document.getElementById('v-feedback');
+    if (val === ans) {
+      fb.className = 'feedback-box show fb-ok';
+      fb.innerHTML = `✅ Tuyệt vời! <b>${currentVocab.en}</b> ${currentVocab.phonetic}`;
+      speakText(currentVocab.en);
+    } else {
+      fb.className = 'feedback-box show fb-err';
+      fb.innerHTML = `❌ Chưa đúng. Từ chuẩn là: <b>${currentVocab.en}</b> ${currentVocab.phonetic}`;
+      addMistake(`Gõ từ: ${currentVocab.vi} -> ${currentVocab.en}`);
+    }
+  }
+
+  function nextVocab() { vocabIdx++; renderVocab(); }
+  function toggleStarVocab() { addMistake(`⭐ Từ đã lưu: ${currentVocab.en} - ${currentVocab.vi}`); alert('Đã lưu từ này vào Sổ tay!'); }
+
+  /* --- 2. YOUTUBE DICTATION --- */
+  function initVideoSelect() {
+    const sel = document.getElementById('video-select');
+    sel.innerHTML = videos.map((v, idx) => `<option value="${idx}">${v.title}</option>`).join('');
+  }
+
+  function onYouTubeIframeAPIReady() {
+    player = new YT.Player('yt-player', {
+      height: '200', width: '100%',
+      videoId: currentVideo.youtubeId,
+      playerVars: { playsinline: 1, rel: 0 }
+    });
+  }
+
+  function loadSelectedVideo() {
+    const idx = document.getElementById('video-select').value;
+    currentVideo = videos[idx];
+    currentSegIdx = 0;
+    if (player && player.loadVideoById) player.loadVideoById(currentVideo.youtubeId);
+    updateDictUI();
+  }
+
+  function updateDictUI() {
+    document.getElementById('dict-progress').innerText = `Câu ${currentSegIdx + 1} / ${currentVideo.segments.length}`;
+    document.getElementById('dict-input').value = '';
+    document.getElementById('dict-result').style.display = 'none';
+    document.getElementById('full-script-box').innerHTML = currentVideo.segments.map((s, i) =>
+      `<div class="script-item ${i === currentSegIdx ? 'active-line' : ''}" onclick="jumpToSegment(${i})">
+        <b>#${i + 1}:</b> ${s.en} <br/><span style="color:var(--muted)">${s.vi}</span>
+      </div>`
+    ).join('');
+  }
+
+  function playCurrentSegment() {
+    const seg = currentVideo.segments[currentSegIdx];
+    if (!player || !player.seekTo) return;
+    clearTimeout(segmentTimer);
+    player.seekTo(seg.start, true);
+    player.playVideo();
+    const durationMs = (seg.end - seg.start) * 1000;
+    segmentTimer = setTimeout(() => { player.pauseVideo(); }, durationMs);
+  }
+
+  function jumpToSegment(i) { currentSegIdx = i; updateDictUI(); playCurrentSegment(); }
+  function nextSegment() { if (currentSegIdx < currentVideo.segments.length - 1) { currentSegIdx++; updateDictUI(); playCurrentSegment(); } }
+  function prevSegment() { if (currentSegIdx > 0) { currentSegIdx--; updateDictUI(); playCurrentSegment(); } }
+  function setSpeed(rate) { if (player && player.setPlaybackRate) player.setPlaybackRate(rate); }
+  function toggleFullScript() {
+    const box = document.getElementById('full-script-box');
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function handleDictKey(e) {
+    if (e.ctrlKey) { e.preventDefault(); playCurrentSegment(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); checkDictation(); }
+  }
+
+  function checkDictation() {
+    const seg = currentVideo.segments[currentSegIdx];
+    const userWords = document.getElementById('dict-input').value.trim().split(/\s+/);
+    const targetWords = seg.en.replace(/[.,!?]/g, '').split(/\s+/);
+    const rawTarget = seg.en.split(/\s+/);
+
+    let html = rawTarget.map((w, i) => {
+      const cleanT = w.replace(/[.,!?]/g, '').toLowerCase();
+      const cleanU = (userWords[i] || '').replace(/[.,!?]/g, '').toLowerCase();
+      if (cleanT === cleanU) return `<span class="word-ok">${w}</span>`;
+      return `<span class="word-err">${userWords[i] || '___'}</span> <span class="word-ok">(${w})</span>`;
+    }).join(' ');
+
+    const res = document.getElementById('dict-result');
+    res.style.display = 'block';
+    res.innerHTML = `<div>${html}</div><div style="margin-top:6px; font-size:13px; color:var(--muted)">🇻🇳 ${seg.vi}</div>`;
+  }
+
+  function toggleAddVideoForm() {
+    const f = document.getElementById('add-video-form');
+    f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function saveCustomVideo() {
+    const title = document.getElementById('new-vid-title').value.trim();
+    const ytId = document.getElementById('new-vid-id').value.trim();
+    const lines = document.getElementById('new-vid-script').value.trim().split('\n');
+    if (!title || !ytId || lines.length === 0) return alert('Vui lòng nhập đủ thông tin!');
+
+    const segments = lines.map(l => {
+      const parts = l.split('|');
+      return { start: parseFloat(parts[0]) || 0, end: parseFloat(parts[1]) || 5, en: (parts[2] || '').trim(), vi: (parts[3] || '').trim() };
+    }).filter(s => s.en);
+
+    videos.push({ id: 'custom_' + Date.now(), title, youtubeId: ytId, segments });
+    localStorage.setItem('custom_videos', JSON.stringify(videos));
+    initVideoSelect();
+    document.getElementById('video-select').value = videos.length - 1;
+    loadSelectedVideo();
+    toggleAddVideoForm();
+    alert('Đã thêm video thành công!');
+  }
+
+  /* --- 3. GRAMMAR 12 TENSES --- */
+  function initGrammar() {
+    document.getElementById('core-tenses').innerHTML = TENSES.filter(t => t.core).map(t =>
+      `<span class="tense-pill core ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (300)</span>`
+    ).join('');
+    document.getElementById('other-tenses').innerHTML = TENSES.filter(t => !t.core).map(t =>
+      `<span class="tense-pill ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (100)</span>`
+    ).join('');
+    selectTense(currentTense);
+  }
+
+  function selectTense(tId) {
+    currentTense = tId;
+    document.querySelectorAll('.tense-pill').forEach(el => el.classList.remove('active'));
+    initGrammarUIOnly();
+    const tObj = TENSES.find(t => t.id === tId);
+    document.getElementById('g-tense-name').innerText = tObj.name;
+    document.getElementById('g-target-badge').innerText = `Bộ ${tObj.target} câu`;
+    document.getElementById('g-formula').innerText = tObj.formula;
+
+    filteredGrammar = GRAMMAR_QUESTIONS.filter(q => q.tense === tId);
+    if (filteredGrammar.length === 0) filteredGrammar = GRAMMAR_QUESTIONS;
+    grammarIdx = 0;
+    renderGrammarQ();
+  }
+
+  function initGrammarUIOnly() {
+    document.getElementById('core-tenses').innerHTML = TENSES.filter(t => t.core).map(t =>
+      `<span class="tense-pill core ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name}</span>`
+    ).join('');
+    document.getElementById('other-tenses').innerHTML = TENSES.filter(t => !t.core).map(t =>
+      `<span class="tense-pill ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name}</span>`
+    ).join('');
+  }
+
+  function renderGrammarQ() {
+    const qObj = filteredGrammar[grammarIdx % filteredGrammar.length];
+    document.getElementById('g-question').innerText = `Câu ${grammarIdx + 1}: ${qObj.q}`;
+    document.getElementById('g-feedback').className = 'feedback-box';
+    const letters = ['A', 'B', 'C', 'D'];
+    document.getElementById('g-options').innerHTML = qObj.opts.map((opt, idx) =>
+      `<button class="option-btn" onclick="checkGrammar(this, ${idx === qObj.ans})"><b>${letters[idx]}.</b> ${opt}</button>`
+    ).join('');
+  }
+
+  function checkGrammar(btn, isCorrect) {
+    const qObj = filteredGrammar[grammarIdx % filteredGrammar.length];
+    const fb = document.getElementById('g-feedback');
+    if (isCorrect) {
+      btn.classList.add('correct');
+      fb.className = 'feedback-box show fb-ok';
+      fb.innerHTML = `✅ Chính xác! ${qObj.exp}`;
+    } else {
+      btn.classList.add('wrong');
+      fb.className = 'feedback-box show fb-err';
+      fb.innerHTML = `❌ Chưa đúng! ${qObj.exp}`;
+      addMistake(`Ngữ pháp: ${qObj.q} -> Đáp án: ${qObj.opts[qObj.ans]}`);
+    }
+  }
+  function nextGrammar() { grammarIdx++; renderGrammarQ(); }
+
+  /* --- 4. SPEAKING --- */
+  function renderSpeaking() {
+    currentSpeak = SPEAKING_DATA[speakIdx % SPEAKING_DATA.length];
+    document.getElementById('sp-topic').innerText = currentSpeak.topic;
+    document.getElementById('sp-sentence').innerText = `"${currentSpeak.en}"`;
+    document.getElementById('sp-meaning').innerTe
