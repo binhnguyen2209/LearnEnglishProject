@@ -144,7 +144,7 @@
 
 <div class="container">
 
-  <!-- ==================== 1. TỪ VỰNG (VÒNG LẶP 10 TỪ HOẶC ÔN TẬP ĐÃ THUỘC) ==================== -->
+  <!-- ==================== 1. TỪ VỰNG ==================== -->
   <div id="tab-vocab" class="tab-content active">
     <div class="card">
       <div class="card-title">
@@ -528,7 +528,7 @@
   let queueIdx = 0;
   let vocabMode = 'quiz';
   let currentVocab = null;
-  let isReviewingMastered = false; // Cờ kiểm tra đang ở chế độ ôn tập từ đã thuộc hay học mới
+  let isReviewingMastered = false;
 
   let lessons = JSON.parse(localStorage.getItem('custom_lessons')) || DEFAULT_LESSONS;
   let currentLesson = lessons[0];
@@ -592,7 +592,6 @@
     renderVocab();
   }
 
-  // Bắt đầu chế độ ôn tập tất cả từ Đã thuộc
   function startReviewMastered() {
     const masteredWords = VOCAB_DATA.filter(v => masteredIds.includes(v.id));
     if(masteredWords.length === 0) {
@@ -602,12 +601,11 @@
     vocabQueue = [...masteredWords].sort(() => 0.5 - Math.random());
     queueIdx = 0;
 
-    // Cập nhật giao diện tab Từ vựng sang chế độ Ôn tập
     document.getElementById('vocab-mode-title').innerText = `🔄 Đang ôn tập toàn bộ từ Đã thuộc (${vocabQueue.length} từ)`;
     document.getElementById('normal-vocab-filters').style.display = 'none';
     document.getElementById('vocab-mode-switcher').style.display = 'none';
     document.getElementById('exit-review-btn').style.display = 'block';
-    document.getElementById('master-action-btn').style.display = 'none'; // Ẩn nút thuộc vì đã thuộc rồi
+    document.getElementById('master-action-btn').style.display = 'none';
 
     switchTab('vocab', document.querySelectorAll('.nav-btn')[0]);
     renderVocab();
@@ -638,6 +636,9 @@
     document.getElementById('vocab-counter').innerText = `${(queueIdx % vocabQueue.length) + 1}/${vocabQueue.length}`;
     document.getElementById('v-badge').innerText = `Bậc ${currentVocab.level} • ${currentVocab.topic.toUpperCase()}`;
     document.getElementById('v-feedback').className = 'feedback-box';
+
+    // Tự động phát âm từ mới khi chuyển đến
+    speakText(currentVocab.en);
 
     if (vocabMode === 'quiz') {
       document.getElementById('v-prompt').innerText = currentVocab.en;
@@ -845,7 +846,7 @@
     alert('Đã lưu bài học mới!');
   }
 
-  /* --- 3. GRAMMAR (GIẢI THÍCH CHI TIẾT KHI CHỌN SAI) --- */
+  /* --- 3. GRAMMAR --- */
   function initGrammar() {
     const coreEl = document.getElementById('core-tenses');
     const otherEl = document.getElementById('other-tenses');
