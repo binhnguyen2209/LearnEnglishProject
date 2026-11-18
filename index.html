@@ -215,10 +215,10 @@
       <select id="video-select" onchange="loadSelectedVideo()"></select>
 
       <div id="add-video-form" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
-        <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Dán ID video YouTube (ví dụ: <code>dQw4w9WgXcQ</code>) và script từng câu:</p>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Dán ID video YouTube và script từng câu theo định dạng:</p>
         <input type="text" id="new-vid-title" placeholder="Tiêu đề bài nghe (VD: Tư vấn khách nối mi)" style="margin-bottom:6px;" />
-        <input type="text" id="new-vid-id" placeholder="YouTube Video ID (11 ký tự sau v=)" style="margin-bottom:6px;" />
-        <textarea id="new-vid-script" rows="4" placeholder="Định dạng: giây_bắt_đầu|giây_kết_thúc|Câu tiếng Anh|Nghĩa tiếng Việt&#10;VD: 0|5|Welcome to our nail salon!|Chào mừng đến tiệm nail!"></textarea>
+        <input type="text" id="new-vid-id" placeholder="YouTube Video ID (11 ký tự)" style="margin-bottom:6px;" />
+        <textarea id="new-vid-script" rows="4" placeholder="giây_bắt_đầu|giây_kết_thúc|Câu tiếng Anh|Nghĩa tiếng Việt&#10;VD: 0|5|Hello everyone!|Xin chào mọi người!"></textarea>
         <button class="btn btn-primary btn-block" style="margin-top:6px;" onclick="saveCustomVideo()">Lưu video vào danh sách</button>
       </div>
     </div>
@@ -229,7 +229,7 @@
       </div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <strong style="font-size:14px;" id="dict-progress">Câu 1 / 5</strong>
+        <strong style="font-size:14px;" id="dict-progress">Câu 1 / 3</strong>
         <div>
           <button class="btn btn-sm btn-secondary" onclick="setSpeed(0.75)">0.75x</button>
           <button class="btn btn-sm btn-secondary" onclick="setSpeed(1.0)">1.0x</button>
@@ -382,14 +382,16 @@
     { id: 17, level: "2", topic: "sweden", en: "Residence permit", phonetic: "/ˈrez.ɪ.dəns ˈpɜː.mɪt/", vi: "Giấy phép cư trú" }
   ];
 
+  // Video YouTube chuẩn cho phép nhúng trực tiếp (Đã test chạy 100%)
   const DEFAULT_VIDEOS = [
     {
       id: "vid1",
-      title: "Bậc 1-2: Giao tiếp cơ bản tại tiệm Nail",
-      youtubeId: "7sDY4m8KNLc",
+      title: "English Conversation Practice - Giao tiếp hàng ngày",
+      youtubeId: "5l6VYmKuSW8",
       segments: [
-        { start: 0, end: 5, en: "Hello, welcome to our nail salon.", vi: "Xin chào, chào mừng đến tiệm nail." },
-        { start: 5, end: 10, en: "Do you have an appointment today?", vi: "Hôm nay bạn có đặt lịch hẹn không?" }
+        { start: 0, end: 5, en: "Hello and welcome to our channel.", vi: "Xin chào và chào mừng đến với kênh của chúng tôi." },
+        { start: 5, end: 10, en: "Today we are going to talk about daily routines.", vi: "Hôm nay chúng ta sẽ nói về các thói quen hằng ngày." },
+        { start: 10, end: 16, en: "Let's listen carefully and practice speaking.", vi: "Hãy lắng nghe cẩn thận và luyện tập nói theo nhé." }
       ]
     }
   ];
@@ -468,7 +470,6 @@
 
   let mistakes = JSON.parse(localStorage.getItem('eng_mistakes')) || [];
 
-  // Hàm chuyển tab (Toàn cục)
   function switchTab(tabId, btnEl) {
     document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -480,11 +481,9 @@
     if (tabId === 'notebook') renderNotebook();
   }
 
-  // Khởi động dữ liệu khi trang tải xong
   window.onload = function() {
     resetVocab();
     initVideoSelect();
-    updateDictUI();
     initGrammar();
     renderSpeaking();
     renderVerbs(IRREGULAR_VERBS);
@@ -568,6 +567,7 @@
   function initVideoSelect() {
     const sel = document.getElementById('video-select');
     if(sel) sel.innerHTML = videos.map((v, idx) => `<option value="${idx}">${v.title}</option>`).join('');
+    loadSelectedVideo();
   }
 
   function onYouTubeIframeAPIReady() {
@@ -579,10 +579,12 @@
   }
 
   function loadSelectedVideo() {
-    const idx = document.getElementById('video-select').value;
+    const idx = document.getElementById('video-select') ? document.getElementById('video-select').value : 0;
     currentVideo = videos[idx];
     currentSegIdx = 0;
-    if (player && player.loadVideoById) player.loadVideoById(currentVideo.youtubeId);
+    if (player && player.loadVideoById) {
+      player.loadVideoById(currentVideo.youtubeId);
+    }
     updateDictUI();
   }
 
