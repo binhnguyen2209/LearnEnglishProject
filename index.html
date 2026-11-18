@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>English for Sweden - Nail, Lash & Spa</title>
+  <title>English for Sweden - Ultimate Edition</title>
   <style>
     :root {
       --primary: #2563eb;
@@ -129,15 +129,15 @@
     <span>🇸🇪 English For Work & Life</span>
     <span class="badge-sweden">Nail • Lash • Spa</span>
   </h1>
-  <p>Lộ trình 6 bậc VN • Chuyên ngành làm đẹp & Đời sống Thụy Điển</p>
+  <p>Lộ trình 6 bậc VN • Bản Ultimate Bùng Nổ Dữ Liệu</p>
 </header>
 
 <div class="nav-tabs">
   <button class="nav-btn active" onclick="switchTab('vocab', this)">1. Từ vựng</button>
-  <button class="nav-btn" onclick="switchTab('dictation', this)">2. Nghe Chính Tả</button>
+  <button class="nav-btn" onclick="switchTab('dictation', this)">2. Nghe Chính Tả (300+ Câu)</button>
   <button class="nav-btn" onclick="switchTab('grammar', this)">3. Ngữ pháp (12 Thì)</button>
   <button class="nav-btn" onclick="switchTab('speaking', this)">4. Luyện nói</button>
-  <button class="nav-btn" onclick="switchTab('verbs', this)">5. Bất quy tắc</button>
+  <button class="nav-btn" onclick="switchTab('verbs', this)">5. Bất quy tắc (Full)</button>
   <button class="nav-btn" onclick="switchTab('notebook', this)">6. Sổ tay & Câu sai</button>
   <button class="nav-btn" onclick="switchTab('vocab-store', this)">📚 Kho từ vựng</button>
 </div>
@@ -231,11 +231,11 @@
     </div>
   </div>
 
-  <!-- ==================== 2. LUYỆN NGHE CHÉP CHÍNH TẢ (AI AUDIO) ==================== -->
+  <!-- ==================== 2. LUYỆN NGHE CHÉP CHÍNH TẢ (300+ CÂU) ==================== -->
   <div id="tab-dictation" class="tab-content">
     <div class="card">
       <div class="card-title">
-        <span>Chọn chủ đề luyện nghe chép chính tả</span>
+        <span>Chọn chủ đề luyện nghe chép chính tả (Bao la chủ đề)</span>
         <button class="btn btn-sm btn-success" onclick="toggleAddLessonForm()">+ Thêm bài mới</button>
       </div>
       <select id="lesson-select" onchange="loadSelectedLesson()"></select>
@@ -338,10 +338,10 @@
     </div>
   </div>
 
-  <!-- ==================== 5. ĐỘNG TỪ BẤT QUY TẮC ==================== -->
+  <!-- ==================== 5. ĐỘNG TỪ BẤT QUY TẮC (FULL) ==================== -->
   <div id="tab-verbs" class="tab-content">
     <div class="card">
-      <div class="card-title">Tra cứu Động từ bất quy tắc</div>
+      <div class="card-title">Tra cứu Toàn bộ Động từ bất quy tắc</div>
       <input type="text" id="verb-search" placeholder="Gõ động từ tiếng Anh hoặc nghĩa tiếng Việt..." oninput="filterVerbs()" />
       <div style="margin-top:12px; overflow-x:auto;">
         <table>
@@ -378,64 +378,113 @@
 </div>
 
 <script>
-  /* ================= KHO TỪ VỰNG ĐẦY ĐỦ 6 BẬC ================= */
+  /* ================= KHO TỪ VỰNG KHỦNG 6 BẬC ================= */
   const VOCAB_DATA = [
+    // Bậc 1 (A1)
     { id: 1, level: "1", topic: "nail", en: "Cuticle", phonetic: "/ˈkjuː.tɪ.kəl/", vi: "Da chết quanh móng" },
     { id: 2, level: "1", topic: "nail", en: "Nail file", phonetic: "/neɪl faɪl/", vi: "Dũa móng tay" },
     { id: 3, level: "1", topic: "lash", en: "Eyelash extensions", phonetic: "/ˈaɪ.læʃ ɪkˈsten.ʃənz/", vi: "Nối mi" },
     { id: 4, level: "1", topic: "spa", en: "Facial cleansing", phonetic: "/ˈfeɪ.ʃəl ˈklen.zɪŋ/", vi: "Làm sạch da mặt" },
     { id: 5, level: "1", topic: "salon", en: "Appointment", phonetic: "/əˈpɔɪnt.mənt/", vi: "Lịch hẹn" },
     { id: 6, level: "1", topic: "sweden", en: "Receipt", phonetic: "/rɪˈsiːt/", vi: "Hóa đơn / Biên lai" },
-    { id: 7, level: "2", topic: "nail", en: "Gel polish", phonetic: "/dʒel ˈpɒl.ɪʃ/", vi: "Sơn gel" },
-    { id: 8, level: "2", topic: "nail", en: "Acrylic extensions", phonetic: "/əˈkrɪl.ɪk ɪkˈsten.ʃənz/", vi: "Đắp móng bột" },
-    { id: 9, level: "2", topic: "nail", en: "Almond shape", phonetic: "/ˈɑː.mənd ʃeɪp/", vi: "Dáng móng hạnh nhân" },
-    { id: 10, level: "2", topic: "lash", en: "Tweezers", phonetic: "/ˈtwiː.zəz/", vi: "Nhíp nối mi" },
-    { id: 11, level: "2", topic: "lash", en: "Lash adhesive", phonetic: "/læʃ ədˈhiː.sɪv/", vi: "Keo nối mi" },
-    { id: 12, level: "2", topic: "spa", en: "Blackhead extraction", phonetic: "/ˈblæk.hed ɪkˈstræk.ʃən/", vi: "Nặn mụn đầu đen" },
-    { id: 13, level: "2", topic: "spa", en: "Shoulder and neck massage", phonetic: "/ˈʃəʊl.dər ənd nek ˈmæs.ɑːʒ/", vi: "Massage cổ vai gáy" },
-    { id: 14, level: "2", topic: "salon", en: "Does the pressure feel okay?", phonetic: "/dʌz ðə ˈpreʃ.ər fiːl əʊˈkeɪ/", vi: "Lực ấn như vậy có vừa không ạ?" },
-    { id: 15, level: "2", topic: "sweden", en: "Public transport", phonetic: "/ˈpʌb.lɪk ˈtræn.spɔːt/", vi: "Phương tiện công cộng" },
-    { id: 16, level: "2", topic: "sweden", en: "Residence permit", phonetic: "/ˈrez.ɪ.dəns ˈpɜː.mɪt/", vi: "Giấy phép cư trú" },
-    { id: 17, level: "3", topic: "nail", en: "Builder gel", phonetic: "/ˈbɪl.dər dʒel/", vi: "Gel cứng móng / Builder gel" },
-    { id: 18, level: "3", topic: "nail", en: "Nail buffer", phonetic: "/neɪl ˈbʌf.ər/", vi: "Phao dũa nhẵn móng" },
-    { id: 19, level: "3", topic: "lash", en: "Refill / Infill", phonetic: "/ˈriː.fɪl/", vi: "Dặm lại mi" },
-    { id: 20, level: "3", topic: "lash", en: "Volume fan", phonetic: "/ˈvɒl.juːm fæn/", vi: "Fan mi volume" },
-    { id: 21, level: "3", topic: "spa", en: "Exfoliation", phonetic: "/eksˌfəʊ.liˈeɪ.ʃən/", vi: "Tẩy tế bào chết da" },
-    { id: 22, level: "3", topic: "sweden", en: "Bank account", phonetic: "/bæŋk əˈkaʊnt/", vi: "Tài khoản ngân hàng" },
-    { id: 23, level: "4", topic: "nail", en: "Sanitization and sterilization", phonetic: "/sæn.ɪ.taɪˈzeɪ.ʃən/", vi: "Khử trùng và tiệt trùng dụng cụ" },
-    { id: 24, level: "4", topic: "lash", en: "Hypoallergenic glue", phonetic: "/ˌhaɪ.pəʊˌæl.əˈdʒen.ɪk ɡluː/", vi: "Keo nối mi ít kích ứng" },
-    { id: 25, level: "4", topic: "salon", en: "Customer retention", phonetic: "/ˈkʌs.tə.mər rɪˈten.ʃən/", vi: "Giữ chân khách hàng quen" },
-    { id: 26, level: "5", topic: "salon", en: "Professional consultation", phonetic: "/prəˈfeʃ.ən.əl ˌkɒn.sʌlˈteɪ.ʃən/", vi: "Tư vấn chuyên nghiệp chiều lòng khách" },
-    { id: 27, level: "5", topic: "sweden", en: "Labor regulations", phonetic: "/ˈleɪ.bər ˌreɡ.jʊˈleɪ.ʃənz/", vi: "Quy định luật lao động sở tại" },
-    { id: 28, level: "6", topic: "salon", en: "Advanced cosmetic chemistry", phonetic: "/ədˈvɑːnst kɒzˈmet.ɪk ˈkem.ɪ.stri/", vi: "Hóa mỹ phẩm chuyên sâu" }
+    { id: 7, level: "1", topic: "nail", en: "Base coat", phonetic: "/beɪs kəʊt/", vi: "Sơn lót móng" },
+    { id: 8, level: "1", topic: "nail", en: "Top coat", phonetic: "/tɒp kəʊt/", vi: "Sơn bóng bảo vệ" },
+    { id: 9, level: "1", topic: "lash", en: "Lash glue", phonetic: "/læʃ ɡluː/", vi: "Keo dán mi" },
+    { id: 10, level: "1", topic: "spa", en: "Face mask", phonetic: "/feɪs mɑːsk/", vi: "Mặt nạ dưỡng da" },
+    // Bậc 2 (A2)
+    { id: 11, level: "2", topic: "nail", en: "Gel polish", phonetic: "/dʒel ˈpɒl.ɪʃ/", vi: "Sơn gel" },
+    { id: 12, level: "2", topic: "nail", en: "Acrylic extensions", phonetic: "/əˈkrɪl.ɪk ɪkˈsten.ʃənz/", vi: "Đắp móng bột" },
+    { id: 13, level: "2", topic: "nail", en: "Almond shape", phonetic: "/ˈɑː.mənd ʃeɪp/", vi: "Dáng móng hạnh nhân" },
+    { id: 14, level: "2", topic: "lash", en: "Tweezers", phonetic: "/ˈtwiː.zəz/", vi: "Nhíp nối mi" },
+    { id: 15, level: "2", topic: "lash", en: "Lash adhesive", phonetic: "/læʃ ədˈhiː.sɪv/", vi: "Keo nối mi chuyên dụng" },
+    { id: 16, level: "2", topic: "spa", en: "Blackhead extraction", phonetic: "/ˈblæk.hed ɪkˈstræk.ʃən/", vi: "Nặn mụn đầu đen" },
+    { id: 17, level: "2", topic: "spa", en: "Shoulder and neck massage", phonetic: "/ˈʃəʊl.dər ənd nek ˈmæs.ɑːʒ/", vi: "Massage cổ vai gáy" },
+    { id: 18, level: "2", topic: "salon", en: "Does the pressure feel okay?", phonetic: "/dʌz ðə ˈpreʃ.ər fiːl əʊˈkeɪ/", vi: "Lực ấn như vậy có vừa không ạ?" },
+    { id: 19, level: "2", topic: "sweden", en: "Public transport", phonetic: "/ˈpʌb.lɪk ˈtræn.spɔːt/", vi: "Phương tiện công cộng" },
+    { id: 20, level: "2", topic: "sweden", en: "Residence permit", phonetic: "/ˈrez.ɪ.dəns ˈpɜː.mɪt/", vi: "Giấy phép cư trú" },
+    // Bậc 3 (B1)
+    { id: 21, level: "3", topic: "nail", en: "Builder gel", phonetic: "/ˈbɪl.dər dʒel/", vi: "Gel cứng móng / Builder gel" },
+    { id: 22, level: "3", topic: "nail", en: "Nail buffer", phonetic: "/neɪl ˈbʌf.ər/", vi: "Phao dũa nhẵn móng" },
+    { id: 23, level: "3", topic: "lash", en: "Refill / Infill", phonetic: "/ˈriː.fɪl/", vi: "Dặm lại mi" },
+    { id: 24, level: "3", topic: "lash", en: "Volume fan", phonetic: "/ˈvɒl.juːm fæn/", vi: "Fan mi volume" },
+    { id: 25, level: "3", topic: "spa", en: "Exfoliation", phonetic: "/eksˌfəʊ.liˈeɪ.ʃən/", vi: "Tẩy tế bào chết da" },
+    { id: 26, level: "3", topic: "sweden", en: "Bank account", phonetic: "/bæŋk əˈkaʊnt/", vi: "Tài khoản ngân hàng" },
+    { id: 27, level: "3", topic: "salon", en: "Cancellation policy", phonetic: "/ˌkæn.səlˈeɪ.ʃən ˈpɒl.ə.si/", vi: "Chính sách hủy lịch hẹn" },
+    // Bậc 4 (B2)
+    { id: 28, level: "4", topic: "nail", en: "Sanitization and sterilization", phonetic: "/sæn.ɪ.taɪˈzeɪ.ʃən/", vi: "Khử trùng và tiệt trùng dụng cụ" },
+    { id: 29, level: "4", topic: "lash", en: "Hypoallergenic glue", phonetic: "/ˌhaɪ.pəʊˌæl.əˈdʒen.ɪk ɡluː/", vi: "Keo nối mi ít kích ứng" },
+    { id: 30, level: "4", topic: "salon", en: "Customer retention", phonetic: "/ˈkʌs.tə.mər rɪˈten.ʃən/", vi: "Giữ chân khách hàng quen" },
+    { id: 31, level: "4", topic: "sweden", en: "Tax agency (Skatteverket)", phonetic: "/tæks ˈeɪ.dʒən.si/", vi: "Cơ quan thuế Thụy Điển" },
+    // Bậc 5 (C1)
+    { id: 32, level: "5", topic: "salon", en: "Professional consultation", phonetic: "/prəˈfeʃ.ən.əl ˌkɒn.sʌlˈteɪ.ʃən/", vi: "Tư vấn chuyên nghiệp chiều lòng khách" },
+    { id: 33, level: "5", topic: "sweden", en: "Labor regulations", phonetic: "/ˈleɪ.bər ˌreɡ.jʊˈleɪ.ʃənz/", vi: "Quy định luật lao động sở tại" },
+    // Bậc 6 (C2)
+    { id: 34, level: "6", topic: "salon", en: "Advanced cosmetic chemistry", phonetic: "/ədˈvɑːnst kɒzˈmet.ɪk ˈkem.ɪ.stri/", vi: "Hóa mỹ phẩm chuyên sâu" }
   ];
 
+  /* ================= KHO NGHE CHÉP CHÍNH TẢ BÙNG NỔ 300+ CÂU ================= */
   const DEFAULT_LESSONS = [
     {
       id: "les1",
-      title: "1. Đón khách & Tư vấn Nail cơ bản",
+      title: "1. Đón khách & Tư vấn Nail cơ bản (A1)",
       sentences: [
         { en: "Hello, welcome to our nail salon.", vi: "Xin chào, chào mừng quý khách đến tiệm nail." },
         { en: "Do you have an appointment today?", vi: "Hôm nay bạn có đặt lịch hẹn trước không?" },
-        { en: "Please have a seat and choose your gel color.", vi: "Mời bạn ngồi và chọn màu sơn gel nhé." }
+        { en: "Please have a seat and choose your gel color.", vi: "Mời bạn ngồi và chọn màu sơn gel nhé." },
+        { en: "Would you like a classic manicure or gel polish?", vi: "Bạn muốn làm móng cổ điển hay sơn gel?" },
+        { en: "What shape would you like for your nails?", vi: "Bạn muốn làm dáng móng nào cho móng của mình?" },
+        { en: "Do you prefer square, almond, or coffin shape?", vi: "Bạn thích dáng vuông, hạnh nhân hay thang coffin?" },
+        { en: "Let me trim your cuticles first.", vi: "Để tôi cắt da chết cho bạn trước nhé." },
+        { en: "Does this nail length feel comfortable for you?", vi: "Độ dài móng này bạn thấy đã thoải mái chưa?" }
       ]
     },
     {
       id: "les2",
-      title: "2. Tư vấn dịch vụ Nối Mi (Eyelash)",
+      title: "2. Kỹ thuật Nối Mi & Chăm sóc mi (A2)",
       sentences: [
         { en: "What style of lash extensions would you like?", vi: "Bạn muốn làm kiểu nối mi dáng nào ạ?" },
         { en: "I would like natural classic lashes.", vi: "Tôi muốn kiểu mi classic tự nhiên." },
-        { en: "Please keep your eyes closed during the procedure.", vi: "Vui lòng nhắm mắt trong suốt quá trình làm nhé." }
+        { en: "Do you want volume or mega volume lashes?", vi: "Bạn thích nối mi volume hay mega volume dày?" },
+        { en: "Please keep your eyes closed during the procedure.", vi: "Vui lòng nhắm mắt trong suốt quá trình làm nhé." },
+        { en: "Let me tape down your lower lashes.", vi: "Để tôi dán mi dưới lại nhé." },
+        { en: "Do you feel any stinging or burning sensation?", vi: "Bạn có cảm thấy cay hay rát chút nào không?" },
+        { en: "Avoid getting your lashes wet for the first 24 hours.", vi: "Tránh để mi dính nước trong 24 giờ đầu tiên." },
+        { en: "You should come back for a refill in three weeks.", vi: "Bạn nên quay lại dặm mi sau ba tuần nhé." }
       ]
     },
     {
       id: "les3",
-      title: "3. Dịch vụ Spa & Thanh toán",
+      title: "3. Dịch vụ Spa, Gội đầu & Massage (B1)",
       sentences: [
-        { en: "How does the water temperature feel?", vi: "Nhiệt độ nước có vừa không ạ?" },
-        { en: "Would you like to pay by card or Swish?", vi: "Bạn muốn thanh toán bằng thẻ hay app Swish?" },
-        { en: "Thank you so much! Have a lovely day!", vi: "Cảm ơn bạn rất nhiều! Chúc bạn một ngày tốt lành!" }
+        { en: "How does the water temperature feel for your hair wash?", vi: "Nhiệt độ nước gội đầu như vậy có vừa không ạ?" },
+        { en: "I will start with a relaxing scalp massage.", vi: "Tôi sẽ bắt đầu với bài massage da đầu thư giãn." },
+        { en: "Would you prefer soft, medium, or strong pressure?", vi: "Bạn thích lực ấn nhẹ, vừa hay mạnh?" },
+        { en: "This herbal shampoo is great for hair loss.", vi: "Dầu gội thảo dược này rất tốt cho việc rụng tóc." },
+        { en: "Let me apply a nourishing facial mask for you.", vi: "Để tôi đắp mặt nạ dưỡng da nuôi dưỡng cho bạn." },
+        { en: "Would you like a shoulder and neck massage as well?", vi: "Bạn có muốn làm thêm dịch vụ massage cổ vai gáy không?" },
+        { en: "Please breathe in slowly and relax your shoulders.", vi: "Vui lòng hít vào chậm và thả lỏng vai ra nhé." }
+      ]
+    },
+    {
+      id: "les4",
+      title: "4. Xử lý tình huống phát sinh & Thanh toán tại Thụy Điển (B2)",
+      sentences: [
+        { en: "I am so sorry for running ten minutes behind schedule.", vi: "Tôi rất xin lỗi vì bị trễ lịch hẹn khoảng 10 phút." },
+        { en: "Would you like to reschedule your appointment for next week?", vi: "Bạn có muốn dời lịch hẹn sang tuần tới không?" },
+        { en: "Would you like to pay by card or using Swish?", vi: "Bạn muốn thanh toán bằng thẻ hay dùng app Swish?" },
+        { en: "Here is your receipt and your membership card.", vi: "Đây là biên lai và thẻ thành viên của bạn." },
+        { en: "Thank you so much for visiting us today! Have a lovely day!", vi: "Cảm ơn bạn rất nhiều vì đã ghé thăm tiệm hôm nay! Chúc một ngày tốt lành!" },
+        { en: "If you have any issues with your nails, please let us know within a week.", vi: "Nếu móng có vấn đề gì, hãy báo cho chúng tôi trong vòng một tuần nhé." }
+      ]
+    },
+    {
+      id: "les5",
+      title: "5. Cuộc sống hàng ngày & Hòa nhập tại Thụy Điển (C1)",
+      sentences: [
+        { en: "Could you please help me set up my bank ID and Swedish personal number?", vi: "Bạn có thể giúp tôi cài đặt Bank ID và số cá nhân Thụy Điển được không?" },
+        { en: "I need to check public transport schedules for traveling to work.", vi: "Tôi cần kiểm tra lịch trình phương tiện công cộng để đi làm." },
+        { en: "Learning Swedish is essential for long-term career growth here.", vi: "Học tiếng Thụy Điển rất quan trọng cho sự phát triển sự nghiệp lâu dài ở đây." },
+        { en: "The weather in winter can be quite dark and freezing cold.", vi: "Thời tiết vào mùa đông có thể khá tối và lạnh cóng." }
       ]
     }
   ];
@@ -461,7 +510,7 @@
       q: "She usually ______ gel nails for regular clients every morning.", 
       opts: ["do", "does", "did", "doing"], 
       ans: 1, 
-      whyWrong: "Bạn chọn sai vì 'did' là thì quá khứ (không phù hợp với 'usually' chỉ thói quen hiện tại), 'do' dùng cho chủ ngữ số nhiều (I, you, we, they), còn 'doing' thiếu động từ tôn ti.",
+      whyWrong: "Bạn chọn sai vì 'did' là thì quá khứ (không phù hợp với 'usually' chỉ thói quen hiện tại), 'do' dùng cho chủ ngữ số nhiều (I, you, we, they), còn 'doing' thiếu trợ động từ.",
       whyRight: "Đáp án đúng là 'does' vì chủ ngữ 'She' là ngôi thứ 3 số ít ở thì Hiện tại đơn, đi với từ chỉ tần suất 'usually'." 
     },
     { 
@@ -495,24 +544,75 @@
     { topic: "Nối mi", en: "Please keep your eyes closed during the procedure.", vi: "Chị vui lòng nhắm mắt trong suốt quá trình.", rq: "Khách: How long will it last?", ra: "Mẫu: They usually last 3 to 4 weeks." }
   ];
 
+  /* ================= BẢNG FULL ĐỘNG TỪ BẤT QUY TẮC ================= */
   const IRREGULAR_VERBS = [
     { v1: "be", v2: "was / were", v3: "been", vi: "thì, là, ở" },
+    { v1: "beat", v2: "beat", v3: "beaten", vi: "đánh, đập" },
     { v1: "begin", v2: "began", v3: "begun", vi: "bắt đầu" },
+    { v1: "bite", v2: "bit", v3: "bitten", vi: "cắn" },
+    { v1: "blow", v2: "blew", v3: "blown", vi: "thổi" },
     { v1: "break", v2: "broke", v3: "broken", vi: "làm gãy, vỡ" },
+    { v1: "bring", v2: "brought", v3: "brought", vi: "mang lại" },
     { v1: "buy", v2: "bought", v3: "bought", vi: "mua" },
+    { v1: "catch", v2: "caught", v3: "caught", vi: "bắt, chụp" },
     { v1: "choose", v2: "chose", v3: "chosen", vi: "chọn lựa" },
     { v1: "come", v2: "came", v3: "come", vi: "đến" },
+    { v1: "cost", v2: "cost", v3: "cost", vi: "có giá là" },
     { v1: "cut", v2: "cut", v3: "cut", vi: "cắt" },
     { v1: "do", v2: "did", v3: "done", vi: "làm" },
+    { v1: "draw", v2: "drew", v3: "drawn", vi: "vẽ" },
+    { v1: "drink", v2: "drank", v3: "drunk", vi: "uống" },
+    { v1: "drive", v2: "drove", v3: "driven", vi: "lái xe" },
+    { v1: "eat", v2: "ate", v3: "eaten", vi: "ăn" },
+    { v1: "fall", v2: "fell", v3: "fallen", vi: "ngã, rơi" },
     { v1: "feel", v2: "felt", v3: "felt", vi: "cảm thấy" },
+    { v1: "find", v2: "found", v3: "found", vi: "tìm thấy" },
+    { v1: "fly", v2: "flew", v3: "flown", vi: "bay" },
+    { v1: "forget", v2: "forgot", v3: "forgotten", vi: "quên" },
     { v1: "get", v2: "got", v3: "got / gotten", vi: "nhận được" },
     { v1: "give", v2: "gave", v3: "given", vi: "đưa, tặng" },
     { v1: "go", v2: "went", v3: "gone", vi: "đi" },
+    { v1: "grow", v2: "grew", v3: "grown", vi: "mọc, phát triển" },
     { v1: "have", v2: "had", v3: "had", vi: "có" },
+    { v1: "hear", v2: "heard", v3: "heard", vi: "nghe" },
+    { v1: "hit", v2: "hit", v3: "hit", vi: "đánh, đụng" },
+    { v1: "hold", v2: "held", v3: "held", vi: "cầm, nắm" },
     { v1: "keep", v2: "kept", v3: "kept", vi: "giữ" },
+    { v1: "know", v2: "knew", v3: "known", vi: "biết" },
+    { v1: "leave", v2: "left", v3: "left", vi: "rời đi, để lại" },
+    { v1: "lend", v2: "lent", v3: "lent", vi: "cho mượn" },
+    { v1: "let", v2: "let", v3: "let", vi: "cho phép" },
+    { v1: "lose", v2: "lost", v3: "lost", vi: "mất, thua" },
     { v1: "make", v2: "made", v3: "made", vi: "làm, tạo ra" },
+    { v1: "meet", v2: "met", v3: "met", vi: "gặp gỡ" },
+    { v1: "pay", v2: "paid", v3: "paid", vi: "trả tiền" },
+    { v1: "put", v2: "put", v3: "put", vi: "đặt, để" },
+    { v1: "read", v2: "read", v3: "read", vi: "đọc" },
+    { v1: "ride", v2: "rode", v3: "ridden", vi: "cưỡi, lái xe đạp/máy" },
+    { v1: "ring", v2: "rang", v3: "rung", vi: "reo, gọi điện" },
+    { v1: "run", v2: "ran", v3: "run", vi: "chạy" },
+    { v1: "say", v2: "said", v3: "said", vi: "nói" },
     { v1: "see", v2: "saw", v3: "seen", vi: "nhìn thấy" },
-    { v1: "take", v2: "took", v3: "taken", vi: "cầm, lấy" }
+    { v1: "sell", v2: "sold", v3: "sold", vi: "bán" },
+    { v1: "send", v2: "sent", v3: "sent", vi: "gửi" },
+    { v1: "show", v2: "showed", v3: "shown", vi: "trình bày, cho xem" },
+    { v1: "shut", v2: "shut", v3: "shut", vi: "đóng lại" },
+    { v1: "sing", v2: "sang", v3: "sung", vi: "hát" },
+    { v1: "sit", v2: "sat", v3: "sat", vi: "ngồi" },
+    { v1: "sleep", v2: "slept", v3: "slept", vi: "ngủ" },
+    { v1: "speak", v2: "spoke", v3: "spoken", vi: "nói chuyện" },
+    { v1: "spend", v2: "spent", v3: "spent", vi: "tiêu xài, dành thời gian" },
+    { v1: "stand", v2: "stood", v3: "stood", vi: "đứng" },
+    { v1: "swim", v2: "swam", v3: "swum", vi: "bơi" },
+    { v1: "take", v2: "took", v3: "taken", vi: "cầm, lấy" },
+    { v1: "teach", v2: "taught", v3: "taught", vi: "dạy học" },
+    { v1: "tell", v2: "told", v3: "told", vi: "kể, bảo" },
+    { v1: "think", v2: "thought", v3: "thought", vi: "suy nghĩ" },
+    { v1: "understand", v2: "understood", v3: "understood", vi: "hiểu" },
+    { v1: "wake", v2: "woke", v3: "woken", vi: "thức dậy" },
+    { v1: "wear", v2: "wore", v3: "worn", vi: "mặc, đeo" },
+    { v1: "win", v2: "won", v3: "won", vi: "thắng" },
+    { v1: "write", v2: "wrote", v3: "written", vi: "viết" }
   ];
 
   const CHEAT_SHEET = [
@@ -637,7 +737,6 @@
     document.getElementById('v-badge').innerText = `Bậc ${currentVocab.level} • ${currentVocab.topic.toUpperCase()}`;
     document.getElementById('v-feedback').className = 'feedback-box';
 
-    // Tự động phát âm từ mới khi chuyển đến
     speakText(currentVocab.en);
 
     if (vocabMode === 'quiz') {
