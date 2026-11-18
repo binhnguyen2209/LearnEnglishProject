@@ -25,14 +25,14 @@
       color: white; padding: 16px; position: sticky; top: 0; z-index: 50;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    header h1 { font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+    header h1 { font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
     header p { font-size: 12px; opacity: 0.9; margin-top: 4px; }
     .badge-sweden { background: #facc15; color: #1e3a8a; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 800; }
 
     /* Navigation Tabs */
     .nav-tabs {
       display: flex; overflow-x: auto; background: white; border-bottom: 1px solid var(--border);
-      position: sticky; top: 68px; z-index: 40; scrollbar-width: none;
+      position: sticky; top: 66px; z-index: 40; scrollbar-width: none;
     }
     .nav-tabs::-webkit-scrollbar { display: none; }
     .nav-btn {
@@ -133,13 +133,13 @@
   <p>Lộ trình 6 bậc VN • Chuyên ngành làm đẹp & Đời sống Thụy Điển</p>
 </header>
 
-<div class="nav-tabs">
-  <button class="nav-btn active" onclick="switchTab('vocab')">1. Từ vựng</button>
-  <button class="nav-btn" onclick="switchTab('dictation')">2. Nghe YouTube</button>
-  <button class="nav-btn" onclick="switchTab('grammar')">3. Ngữ pháp (12 Thì)</button>
-  <button class="nav-btn" onclick="switchTab('speaking')">4. Luyện nói</button>
-  <button class="nav-btn" onclick="switchTab('verbs')">5. Bất quy tắc</button>
-  <button class="nav-btn" onclick="switchTab('notebook')">6. Sổ tay & Câu sai</button>
+<div class="nav-tabs" id="nav-tabs-container">
+  <button class="nav-btn active" data-target="vocab">1. Từ vựng</button>
+  <button class="nav-btn" data-target="dictation">2. Nghe YouTube</button>
+  <button class="nav-btn" data-target="grammar">3. Ngữ pháp (12 Thì)</button>
+  <button class="nav-btn" data-target="speaking">4. Luyện nói</button>
+  <button class="nav-btn" data-target="verbs">5. Bất quy tắc</button>
+  <button class="nav-btn" data-target="notebook">6. Sổ tay & Câu sai</button>
 </div>
 
 <div class="container">
@@ -184,7 +184,7 @@
       </div>
 
       <div class="word-box">
-        <div class="word-main" id="v-prompt">Loading...</div>
+        <div class="word-main" id="v-prompt">...</div>
         <div class="word-sub" id="v-phonetic"></div>
       </div>
 
@@ -214,12 +214,11 @@
       </div>
       <select id="video-select" onchange="loadSelectedVideo()"></select>
 
-      <!-- Form thêm video YouTube mới -->
       <div id="add-video-form" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
-        <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Dán ID video YouTube (ví dụ: <code>dQw4w9WgXcQ</code>) và các câu thoại kèm giây bắt đầu - kết thúc:</p>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Dán ID video YouTube (ví dụ: <code>dQw4w9WgXcQ</code>) và script từng câu:</p>
         <input type="text" id="new-vid-title" placeholder="Tiêu đề bài nghe (VD: Tư vấn khách nối mi)" style="margin-bottom:6px;" />
         <input type="text" id="new-vid-id" placeholder="YouTube Video ID (11 ký tự sau v=)" style="margin-bottom:6px;" />
-        <textarea id="new-vid-script" rows="4" placeholder="Định dạng mỗi dòng: giây_bắt_đầu|giây_kết_thúc|Câu tiếng Anh|Nghĩa tiếng Việt&#10;VD: 0|4.5|Welcome to our nail salon!|Chào mừng đến với tiệm nail của chúng tôi!"></textarea>
+        <textarea id="new-vid-script" rows="4" placeholder="Định dạng: giây_bắt_đầu|giây_kết_thúc|Câu tiếng Anh|Nghĩa tiếng Việt&#10;VD: 0|5|Welcome to our nail salon!|Chào mừng đến tiệm nail!"></textarea>
         <button class="btn btn-primary btn-block" style="margin-top:6px;" onclick="saveCustomVideo()">Lưu video vào danh sách</button>
       </div>
     </div>
@@ -242,14 +241,13 @@
         <button class="btn btn-primary" onclick="playCurrentSegment()">▶ Nghe câu này (Ctrl)</button>
         <button class="btn btn-secondary" onclick="prevSegment()">⬅ Trước</button>
         <button class="btn btn-secondary" onclick="nextSegment()">Sau ➔</button>
-        <button class="btn btn-warning" onclick="toggleFullScript()">👁️ Hiện/Ẩn Script</button>
+        <button class="btn btn-warning" onclick="toggleFullScript()">👁️ Script</button>
       </div>
 
-      <textarea id="dict-input" rows="2" placeholder="Nghe đoạn video vừa phát và gõ lại chính xác từng từ tiếng Anh..." onkeydown="handleDictKey(event)"></textarea>
+      <textarea id="dict-input" rows="2" placeholder="Gõ lại chính xác từng từ tiếng Anh..." onkeydown="handleDictKey(event)"></textarea>
       <button class="btn btn-success btn-block" style="margin-top:8px;" onclick="checkDictation()">Kiểm tra chính tả (Enter)</button>
 
       <div id="dict-result" class="diff-result" style="display:none;"></div>
-
       <div id="full-script-box" style="display:none; margin-top:12px; max-height:200px; overflow-y:auto; border:1px solid var(--border); border-radius:8px;"></div>
     </div>
   </div>
@@ -258,7 +256,7 @@
   <div id="tab-grammar" class="tab-content">
     <div class="card">
       <div class="card-title">Chọn thì cần luyện tập</div>
-      <p style="font-size:12px; color:var(--primary); font-weight:700; margin-bottom:4px;">★ 4 Thì Cốt Lõi Thực Tế (Mục tiêu 300 câu/thì):</p>
+      <p style="font-size:12px; color:var(--primary); font-weight:700; margin-bottom:4px;">★ 4 Thì Cốt Lõi (Mục tiêu 300 câu/thì):</p>
       <div id="core-tenses"></div>
       <p style="font-size:12px; color:var(--muted); font-weight:700; margin:8px 0 4px;">8 Thì Bổ Trợ (Mục tiêu 100 câu/thì):</p>
       <div id="other-tenses"></div>
@@ -266,14 +264,14 @@
 
     <div class="card">
       <div class="card-title">
-        <span id="g-tense-name">Hiện tại đơn (Present Simple)</span>
-        <span class="tag" id="g-target-badge">0 / 300 câu</span>
+        <span id="g-tense-name">Hiện tại đơn</span>
+        <span class="tag" id="g-target-badge">Bộ 300 câu</span>
       </div>
       <div style="background:#f1f5f9; padding:10px; border-radius:8px; font-size:13px; margin-bottom:12px;" id="g-formula">
-        Công thức: S + V(s/es) | Dùng diễn tả thói quen, lịch trình, sự thật.
+        Công thức: S + V(s/es) | Dùng cho thói quen, sự thật hiển nhiên.
       </div>
 
-      <p style="font-size:15px; font-weight:600; margin-bottom:12px;" id="g-question">Loading question...</p>
+      <p style="font-size:15px; font-weight:600; margin-bottom:12px;" id="g-question">Loading...</p>
       <div id="g-options"></div>
       <div id="g-feedback" class="feedback-box"></div>
       <button class="btn btn-secondary btn-block" style="margin-top:10px;" onclick="nextGrammar()">Câu bài tập tiếp theo ➔</button>
@@ -283,21 +281,21 @@
   <!-- ==================== 4. LUYỆN NÓI (SPEAKING) ==================== -->
   <div id="tab-speaking" class="tab-content">
     <div class="card">
-      <div class="card-title">Phương pháp luyện nói phản xạ nhanh</div>
+      <div class="card-title">Phương pháp Shadowing & Phản xạ</div>
       <p style="font-size:13px; color:var(--muted); line-height:1.5;">
-        1. <b>Shadowing (Nhại giọng):</b> Bấm nghe mẫu câu chuẩn -> Bấm giữ/nhấn Micro và đọc to lại y hệt ngữ điệu. Máy sẽ chấm điểm từng từ bạn phát âm.<br/>
-        2. <b>Role-play (Phản xạ khách hàng):</b> Đọc câu hỏi của khách Tây -> Tự trả lời thành tiếng -> Bấm xem gợi ý câu trả lời chuẩn lịch sự kiểu Thụy Điển.
+        1. <b>Shadowing:</b> Nghe mẫu câu -> Bấm Micro đọc nhại lại để máy chấm điểm phát âm.<br/>
+        2. <b>Role-play:</b> Đọc câu hỏi khách Tây -> Tự trả lời -> Xem mẫu câu chuẩn.
       </p>
     </div>
 
     <div class="card">
       <div class="card-title">
-        <span>Luyện phát âm & Chấm điểm qua Micro</span>
+        <span>Luyện phát âm qua Micro</span>
         <span class="tag" id="sp-topic">Tư vấn Nail/Mi</span>
       </div>
       <div class="word-box">
-        <div class="word-main" style="font-size:18px;" id="sp-sentence">"What shape and length would you like for your nails today?"</div>
-        <div class="word-sub" id="sp-meaning">Hôm nay chị muốn làm dáng móng và độ dài như thế nào ạ?</div>
+        <div class="word-main" style="font-size:18px;" id="sp-sentence">"What shape and length would you like?"</div>
+        <div class="word-sub" id="sp-meaning">Hôm nay chị muốn làm dáng móng nào ạ?</div>
       </div>
 
       <div class="grid-2">
@@ -308,15 +306,15 @@
       <div id="sp-result" class="feedback-box"></div>
 
       <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-        <p style="font-size:13px; font-weight:700; color:#1e293b;">💬 Tình huống khách hỏi thêm:</p>
-        <p style="font-size:13px; margin:4px 0;" id="sp-roleplay-q">Khách: "How long will the eyelash extensions last?"</p>
+        <p style="font-size:13px; font-weight:700; color:#1e293b;">💬 Tình huống khách hỏi:</p>
+        <p style="font-size:13px; margin:4px 0;" id="sp-roleplay-q">Khách: "How much is a gel manicure?"</p>
         <button class="btn btn-sm btn-warning" onclick="document.getElementById('sp-roleplay-a').style.display='block'">Xem câu trả lời mẫu</button>
         <p id="sp-roleplay-a" style="display:none; margin-top:6px; font-size:13px; color:var(--success); font-weight:600;">
-          Mẫu: "They usually last about 3 to 4 weeks, depending on how you care for them. I recommend a refill after 3 weeks."
+          Mẫu: "A gel manicure is 450 SEK."
         </p>
       </div>
 
-      <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="nextSpeaking()">Mẫu câu giao tiếp tiếp theo ➔</button>
+      <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="nextSpeaking()">Mẫu câu tiếp theo ➔</button>
     </div>
   </div>
 
@@ -324,7 +322,7 @@
   <div id="tab-verbs" class="tab-content">
     <div class="card">
       <div class="card-title">Tra cứu Động từ bất quy tắc</div>
-      <input type="text" id="verb-search" placeholder="Gõ động từ tiếng Anh (VD: go, take, make) hoặc nghĩa tiếng Việt..." oninput="filterVerbs()" />
+      <input type="text" id="verb-search" placeholder="Gõ động từ tiếng Anh hoặc nghĩa tiếng Việt..." oninput="filterVerbs()" />
       <div style="margin-top:12px; overflow-x:auto;">
         <table>
           <thead>
@@ -341,14 +339,14 @@
     </div>
   </div>
 
-  <!-- ==================== 6. SỔ TAY MẪU CÂU & ÔN CÂU SAI ==================== -->
+  <!-- ==================== 6. SỔ TAY & CÂU SAI ==================== -->
   <div id="tab-notebook" class="tab-content">
     <div class="card">
       <div class="card-title">
-        <span>🚨 Ngân hàng câu làm sai (Tự động lưu)</span>
+        <span>🚨 Ngân hàng câu làm sai</span>
         <button class="btn btn-sm btn-danger" onclick="clearMistakes()">Xóa hết</button>
       </div>
-      <div id="mistake-list" style="font-size:13px; color:var(--muted);">Chưa có câu sai nào. Hãy luyện tập các tab kia nhé!</div>
+      <div id="mistake-list" style="font-size:13px; color:var(--muted);">Chưa có câu sai nào. Hãy luyện tập tiếp nhé!</div>
     </div>
 
     <div class="card">
@@ -363,7 +361,7 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-  /* ================= DỮ LIỆU MẪU (SẼ MỞ RỘNG THÊM Ở BƯỚC SAU) ================= */
+  /* ================= DỮ LIỆU MẪU ================= */
   const VOCAB_DATA = [
     { id: 1, level: "1", topic: "nail", en: "Cuticle", phonetic: "/ˈkjuː.tɪ.kəl/", vi: "Da chết quanh móng" },
     { id: 2, level: "1", topic: "nail", en: "Nail file", phonetic: "/neɪl faɪl/", vi: "Dũa móng tay" },
@@ -380,98 +378,76 @@
     { id: 13, level: "1", topic: "salon", en: "Appointment", phonetic: "/əˈpɔɪnt.mənt/", vi: "Lịch hẹn" },
     { id: 14, level: "2", topic: "salon", en: "Does the pressure feel okay?", phonetic: "/dʌz ðə ˈpreʃ.ər fiːl əʊˈkeɪ/", vi: "Lực ấn như vậy có vừa không ạ?" },
     { id: 15, level: "1", topic: "sweden", en: "Receipt", phonetic: "/rɪˈsiːt/", vi: "Hóa đơn / Biên lai" },
-    { id: 16, level: "2", topic: "sweden", en: "Public transport", phonetic: "/ˈpʌb.lɪk ˈtræn.spɔːt/", vi: "Phương tiện công cộng (tàu/xe buýt)" },
+    { id: 16, level: "2", topic: "sweden", en: "Public transport", phonetic: "/ˈpʌb.lɪk ˈtræn.spɔːt/", vi: "Phương tiện công cộng" },
     { id: 17, level: "2", topic: "sweden", en: "Residence permit", phonetic: "/ˈrez.ɪ.dəns ˈpɜː.mɪt/", vi: "Giấy phép cư trú" }
   ];
 
-const DEFAULT_VIDEOS = [
+  const DEFAULT_VIDEOS = [
     {
       id: "vid1",
-      title: "Bậc 1-2: Giao tiếp cơ bản tại tiệm Nail (Nail Salon English)",
+      title: "Bậc 1-2: Giao tiếp cơ bản tại tiệm Nail",
       youtubeId: "7sDY4m8KNLc",
       segments: [
-        { start: 0, end: 5, en: "Hello, welcome to our nail salon.", vi: "Xin chào, chào mừng bạn đến với tiệm nail của chúng tôi." },
-        { start: 5, end: 10, en: "Do you have an appointment today?", vi: "Hôm nay bạn có đặt lịch hẹn trước không?" },
-        { start: 10, end: 16, en: "Please have a seat and choose your color.", vi: "Mời bạn ngồi và chọn màu sơn nhé." }
-      ]
-    },
-    {
-      id: "vid2",
-      title: "Bậc 2-3: Tư vấn khách nối mi (Lash Consultation)",
-      youtubeId: "ysz5S6PUM-U",
-      segments: [
-        { start: 0, end: 6, en: "What style of lashes are you looking for?", vi: "Bạn đang muốn nối dáng mi kiểu nào ạ?" },
-        { start: 6, end: 12, en: "I want something natural for everyday wear.", vi: "Tôi muốn kiểu nào tự nhiên để đi làm hằng ngày." }
+        { start: 0, end: 5, en: "Hello, welcome to our nail salon.", vi: "Xin chào, chào mừng đến tiệm nail." },
+        { start: 5, end: 10, en: "Do you have an appointment today?", vi: "Hôm nay bạn có đặt lịch hẹn không?" }
       ]
     }
   ];
 
   const TENSES = [
-    { id: "pres_simple", name: "1. Hiện tại đơn", target: 300, core: true, formula: "S + V(s/es) | Dùng cho thói quen, sự thật hiển nhiên, lịch cố định." },
-    { id: "past_simple", name: "2. Quá khứ đơn", target: 300, core: true, formula: "S + V2/ed | Hành động đã xảy ra và kết thúc trong quá khứ." },
-    { id: "fut_simple", name: "3. Tương lai đơn", target: 300, core: true, formula: "S + will + V0 | Quyết định ngay lúc nói, dự đoán, lời hứa." },
-    { id: "pres_perf", name: "4. Hiện tại hoàn thành", target: 300, core: true, formula: "S + have/has + V3/ed | Hành động từ quá khứ kéo dài tới hiện tại hoặc vừa mới xảy ra." },
+    { id: "pres_simple", name: "1. Hiện tại đơn", target: 300, core: true, formula: "S + V(s/es) | Thói quen, sự thật hiển nhiên." },
+    { id: "past_simple", name: "2. Quá khứ đơn", target: 300, core: true, formula: "S + V2/ed | Hành động đã kết thúc trong quá khứ." },
+    { id: "fut_simple", name: "3. Tương lai đơn", target: 300, core: true, formula: "S + will + V0 | Quyết định nhanh, dự đoán." },
+    { id: "pres_perf", name: "4. Hiện tại hoàn thành", target: 300, core: true, formula: "S + have/has + V3/ed | Từ quá khứ kéo dài đến hiện tại." },
     { id: "pres_cont", name: "5. Hiện tại tiếp diễn", target: 100, core: false, formula: "S + am/is/are + V-ing | Đang xảy ra ngay lúc nói." },
-    { id: "past_cont", name: "6. Quá khứ tiếp diễn", target: 100, core: false, formula: "S + was/were + V-ing | Đang xảy ra tại một thời điểm cụ thể trong quá khứ." },
-    { id: "fut_cont", name: "7. Tương lai tiếp diễn", target: 100, core: false, formula: "S + will be + V-ing | Sẽ đang diễn ra tại một thời điểm trong tương lai." },
-    { id: "past_perf", name: "8. Quá khứ hoàn thành", target: 100, core: false, formula: "S + had + V3/ed | Xảy ra trước một hành động khác trong quá khứ." },
-    { id: "fut_perf", name: "9. Tương lai hoàn thành", target: 100, core: false, formula: "S + will have + V3/ed | Hoàn tất trước một mốc thời gian tương lai." },
-    { id: "pres_perf_cont", name: "10. HT Hoàn thành tiếp diễn", target: 100, core: false, formula: "S + have/has been + V-ing | Nhấn mạnh tính liên tục của hành động." },
-    { id: "past_perf_cont", name: "11. QK Hoàn thành tiếp diễn", target: 100, core: false, formula: "S + had been + V-ing | Liên tục trước một mốc quá khứ." },
-    { id: "fut_perf_cont", name: "12. TL Hoàn thành tiếp diễn", target: 100, core: false, formula: "S + will have been + V-ing | Liên tục tính đến một mốc tương lai." }
+    { id: "past_cont", name: "6. Quá khứ tiếp diễn", target: 100, core: false, formula: "S + was/were + V-ing | Đang diễn ra tại thời điểm quá khứ." },
+    { id: "fut_cont", name: "7. Tương lai tiếp diễn", target: 100, core: false, formula: "S + will be + V-ing | Sẽ đang diễn ra trong tương lai." },
+    { id: "past_perf", name: "8. Quá khứ hoàn thành", target: 100, core: false, formula: "S + had + V3/ed | Xảy ra trước hành động quá khứ khác." },
+    { id: "fut_perf", name: "9. Tương lai hoàn thành", target: 100, core: false, formula: "S + will have + V3/ed | Hoàn tất trước mốc tương lai." },
+    { id: "pres_perf_cont", name: "10. HT HT Tiếp diễn", target: 100, core: false, formula: "S + have/has been + V-ing | Nhấn mạnh tính liên tục." },
+    { id: "past_perf_cont", name: "11. QK HT Tiếp diễn", target: 100, core: false, formula: "S + had been + V-ing | Liên tục trước mốc quá khứ." },
+    { id: "fut_perf_cont", name: "12. TL HT Tiếp diễn", target: 100, core: false, formula: "S + will have been + V-ing | Liên tục tính đến mốc tương lai." }
   ];
 
   const GRAMMAR_QUESTIONS = [
-    { tense: "pres_simple", q: "She usually ______ gel nails for regular clients every morning.", opts: ["do", "does", "did", "doing"], ans: 1, exp: "Có dấu hiệu 'usually' và 'every morning' (thói quen) + chủ ngữ số ít 'She' -> dùng does." },
-    { tense: "pres_simple", q: "Our salon ______ at 9:00 AM from Monday to Saturday.", opts: ["open", "opens", "opened", "opening"], ans: 1, exp: "Lịch trình cố định của tiệm -> dùng Hiện tại đơn 'opens'." },
-    { tense: "past_simple", q: "Yesterday, a Swedish customer ______ a full set of volume lashes.", opts: ["book", "books", "booked", "has booked"], ans: 2, exp: "Có 'Yesterday' (thời gian xác định trong quá khứ) -> chia Quá khứ đơn 'booked'." },
-    { tense: "fut_simple", q: "Don't worry, I ______ fix that broken nail for you right now.", opts: ["will", "am", "was", "have"], ans: 0, exp: "Quyết định giúp khách ngay tại thời điểm nói -> dùng 'will + V0'." },
-    { tense: "pres_perf", q: "I ______ as a nail and lash technician for over two years.", opts: ["work", "worked", "have worked", "am working"], ans: 2, exp: "Có 'for over two years' (kéo dài từ quá khứ đến hiện tại) -> dùng Hiện tại hoàn thành 'have worked'." },
-    { tense: "pres_cont", q: "Please wait a moment, she ______ a facial massage for another client.", opts: ["gives", "is giving", "gave", "will give"], ans: 1, exp: "Hành động đang diễn ra ngay lúc nói -> dùng Hiện tại tiếp diễn 'is giving'." }
+    { tense: "pres_simple", q: "She usually ______ gel nails for regular clients every morning.", opts: ["do", "does", "did", "doing"], ans: 1, exp: "Chủ ngữ số ít 'She' + thói quen -> dùng does." },
+    { tense: "past_simple", q: "Yesterday, a Swedish customer ______ a full set of volume lashes.", opts: ["book", "books", "booked", "has booked"], ans: 2, exp: "Có 'Yesterday' -> dùng Quá khứ đơn 'booked'." },
+    { tense: "fut_simple", q: "Don't worry, I ______ fix that broken nail for you right now.", opts: ["will", "am", "was", "have"], ans: 0, exp: "Quyết định ngay lúc nói -> dùng 'will'." },
+    { tense: "pres_perf", q: "I ______ as a nail technician for over two years.", opts: ["work", "worked", "have worked", "am working"], ans: 2, exp: "Kéo dài từ quá khứ tới nay -> dùng 'have worked'." }
   ];
 
   const SPEAKING_DATA = [
-    { topic: "Tư vấn Nail", en: "What shape and length would you like for your nails today?", vi: "Hôm nay chị muốn làm dáng móng và độ dài như thế nào ạ?", rq: "Khách: How much is a gel manicure with removal?", ra: "Mẫu: A gel manicure is 450 SEK, and removal is an extra 100 SEK." },
-    { topic: "Nối mi", en: "Please keep your eyes closed during the whole procedure.", vi: "Chị vui lòng nhắm mắt trong suốt quá trình nối mi nhé.", rq: "Khách: How long will the eyelash extensions last?", ra: "Mẫu: They usually last 3 to 4 weeks. I recommend a refill after 3 weeks." },
-    { topic: "Spa & Massage", en: "Let me know if the water temperature or massage pressure is too strong.", vi: "Hãy báo em biết nếu nhiệt độ nước hoặc lực massage hơi mạnh nhé.", rq: "Khách: That feels super relaxing, thank you!", ra: "Mẫu: I am glad you enjoy it. Just relax and take your time." },
-    { topic: "Đời sống Thụy Điển", en: "Excuse me, does this train go to the Central Station?", vi: "Xin lỗi, chuyến tàu này có đi đến Ga Trung Tâm không ạ?", rq: "Người dân: Yes, it stops there in ten minutes.", ra: "Mẫu: Thank you so much for your help!" }
+    { topic: "Tư vấn Nail", en: "What shape and length would you like for your nails today?", vi: "Hôm nay chị muốn làm dáng móng và độ dài như thế nào ạ?", rq: "Khách: How much is a gel manicure?", ra: "Mẫu: A gel manicure is 450 SEK." },
+    { topic: "Nối mi", en: "Please keep your eyes closed during the procedure.", vi: "Chị vui lòng nhắm mắt trong suốt quá trình.", rq: "Khách: How long will it last?", ra: "Mẫu: They usually last 3 to 4 weeks." }
   ];
 
   const IRREGULAR_VERBS = [
     { v1: "be", v2: "was / were", v3: "been", vi: "thì, là, ở" },
     { v1: "begin", v2: "began", v3: "begun", vi: "bắt đầu" },
-    { v1: "break", v2: "broke", v3: "broken", vi: "làm gãy, vỡ (móng)" },
-    { v1: "bring", v2: "brought", v3: "brought", vi: "mang đến" },
+    { v1: "break", v2: "broke", v3: "broken", vi: "làm gãy, vỡ" },
     { v1: "buy", v2: "bought", v3: "bought", vi: "mua" },
-    { v1: "choose", v2: "chose", v3: "chosen", vi: "chọn lựa (màu sơn)" },
+    { v1: "choose", v2: "chose", v3: "chosen", vi: "chọn lựa" },
     { v1: "come", v2: "came", v3: "come", vi: "đến" },
-    { v1: "cut", v2: "cut", v3: "cut", vi: "cắt (da, móng)" },
+    { v1: "cut", v2: "cut", v3: "cut", vi: "cắt" },
     { v1: "do", v2: "did", v3: "done", vi: "làm" },
     { v1: "feel", v2: "felt", v3: "felt", vi: "cảm thấy" },
-    { v1: "find", v2: "found", v3: "found", vi: "tìm thấy" },
-    { v1: "get", v2: "got", v3: "got / gotten", vi: "nhận được, lấy" },
+    { v1: "get", v2: "got", v3: "got / gotten", vi: "nhận được" },
     { v1: "give", v2: "gave", v3: "given", vi: "đưa, tặng" },
     { v1: "go", v2: "went", v3: "gone", vi: "đi" },
     { v1: "have", v2: "had", v3: "had", vi: "có" },
-    { v1: "keep", v2: "kept", v3: "kept", vi: "giữ (mi bền)" },
-    { v1: "know", v2: "knew", v3: "known", vi: "biết" },
+    { v1: "keep", v2: "kept", v3: "kept", vi: "giữ" },
     { v1: "make", v2: "made", v3: "made", vi: "làm, tạo ra" },
-    { v1: "pay", v2: "paid", v3: "paid", vi: "thanh toán, trả tiền" },
-    { v1: "put", v2: "put", v3: "put", vi: "đặt, để, sơn lên" },
     { v1: "see", v2: "saw", v3: "seen", vi: "nhìn thấy" },
-    { v1: "speak", v2: "spoke", v3: "spoken", vi: "nói tiếng Anh" },
-    { v1: "take", v2: "took", v3: "taken", vi: "cầm, lấy, mất (thời gian)" },
-    { v1: "tell", v2: "told", v3: "told", vi: "kể, bảo" },
-    { v1: "understand", v2: "understood", v3: "understood", vi: "hiểu" }
+    { v1: "take", v2: "took", v3: "taken", vi: "cầm, lấy" }
   ];
 
   const CHEAT_SHEET = [
-    { cat: "👋 Đón khách & Mời nước", items: ["Hi! Welcome in. How are you doing today?", "Would you like some water, tea, or coffee while you wait?", "Please wash your hands over there first."] },
-    { cat: "💅 Khi làm Nail & Nối mi", items: ["Is this length okay for you?", "Please put your hand inside the UV lamp.", "Avoid getting your lashes wet for the first 24 hours."] },
-    { cat: "💳 Thanh toán & Hẹn lại", items: ["Would you like to pay by card or Swish?", "Would you like to book your refill appointment now?", "Thank you so much! Have a lovely day!"] }
+    { cat: "👋 Đón khách & Mời nước", items: ["Hi! Welcome in. How are you doing today?", "Would you like some water, tea, or coffee?"] },
+    { cat: "💅 Khi làm Nail & Nối mi", items: ["Is this length okay for you?", "Please put your hand inside the UV lamp."] },
+    { cat: "💳 Thanh toán", items: ["Would you like to pay by card or Swish?", "Thank you so much! Have a lovely day!"] }
   ];
 
-  /* ================= STATE & LOGIC ================= */
+  /* ================= LOGIC & FIX TAB SWITCHING ================= */
   let filteredVocab = [...VOCAB_DATA];
   let vocabIdx = 0;
   let vocabMode = 'quiz';
@@ -492,13 +468,31 @@ const DEFAULT_VIDEOS = [
 
   let mistakes = JSON.parse(localStorage.getItem('eng_mistakes')) || [];
 
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById('tab-' + tabId).classList.add('active');
-    event.target.classList.add('active');
-    if (tabId === 'notebook') renderNotebook();
-  }
+  // Gắn sự kiện chuyển tab an toàn cho điện thoại
+  document.addEventListener('DOMContentLoaded', () => {
+    const navButtons = document.querySelectorAll('.nav-btn');
+    navButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        navButtons.forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        
+        btn.classList.add('active');
+        const targetId = 'tab-' + btn.getAttribute('data-target');
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) targetEl.classList.add('active');
+        
+        if (btn.getAttribute('data-target') === 'notebook') renderNotebook();
+      });
+    });
+
+    // Khởi động chạy lần đầu
+    resetVocab();
+    initVideoSelect();
+    updateDictUI();
+    initGrammar();
+    renderSpeaking();
+    renderVerbs(IRREGULAR_VERBS);
+  });
 
   /* --- 1. VOCAB LOGIC --- */
   function resetVocab() {
@@ -572,7 +566,7 @@ const DEFAULT_VIDEOS = [
   }
 
   function nextVocab() { vocabIdx++; renderVocab(); }
-  function toggleStarVocab() { addMistake(`⭐ Từ đã lưu: ${currentVocab.en} - ${currentVocab.vi}`); alert('Đã lưu từ này vào Sổ tay!'); }
+  function toggleStarVocab() { addMistake(`⭐ Từ lưu: ${currentVocab.en} - ${currentVocab.vi}`); alert('Đã lưu vào Sổ tay!'); }
 
   /* --- 2. YOUTUBE DICTATION --- */
   function initVideoSelect() {
@@ -613,8 +607,7 @@ const DEFAULT_VIDEOS = [
     clearTimeout(segmentTimer);
     player.seekTo(seg.start, true);
     player.playVideo();
-    const durationMs = (seg.end - seg.start) * 1000;
-    segmentTimer = setTimeout(() => { player.pauseVideo(); }, durationMs);
+    segmentTimer = setTimeout(() => { player.pauseVideo(); }, (seg.end - seg.start) * 1000);
   }
 
   function jumpToSegment(i) { currentSegIdx = i; updateDictUI(); playCurrentSegment(); }
@@ -625,7 +618,6 @@ const DEFAULT_VIDEOS = [
     const box = document.getElementById('full-script-box');
     box.style.display = box.style.display === 'none' ? 'block' : 'none';
   }
-
   function handleDictKey(e) {
     if (e.ctrlKey) { e.preventDefault(); playCurrentSegment(); }
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); checkDictation(); }
@@ -634,7 +626,6 @@ const DEFAULT_VIDEOS = [
   function checkDictation() {
     const seg = currentVideo.segments[currentSegIdx];
     const userWords = document.getElementById('dict-input').value.trim().split(/\s+/);
-    const targetWords = seg.en.replace(/[.,!?]/g, '').split(/\s+/);
     const rawTarget = seg.en.split(/\s+/);
 
     let html = rawTarget.map((w, i) => {
@@ -658,7 +649,7 @@ const DEFAULT_VIDEOS = [
     const title = document.getElementById('new-vid-title').value.trim();
     const ytId = document.getElementById('new-vid-id').value.trim();
     const lines = document.getElementById('new-vid-script').value.trim().split('\n');
-    if (!title || !ytId || lines.length === 0) return alert('Vui lòng nhập đủ thông tin!');
+    if (!title || !ytId || lines.length === 0) return alert('Nhập đủ thông tin!');
 
     const segments = lines.map(l => {
       const parts = l.split('|');
@@ -671,10 +662,10 @@ const DEFAULT_VIDEOS = [
     document.getElementById('video-select').value = videos.length - 1;
     loadSelectedVideo();
     toggleAddVideoForm();
-    alert('Đã thêm video thành công!');
+    alert('Đã lưu video!');
   }
 
-  /* --- 3. GRAMMAR 12 TENSES --- */
+  /* --- 3. GRAMMAR --- */
   function initGrammar() {
     document.getElementById('core-tenses').innerHTML = TENSES.filter(t => t.core).map(t =>
       `<span class="tense-pill core ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (300)</span>`
@@ -687,8 +678,6 @@ const DEFAULT_VIDEOS = [
 
   function selectTense(tId) {
     currentTense = tId;
-    document.querySelectorAll('.tense-pill').forEach(el => el.classList.remove('active'));
-    initGrammarUIOnly();
     const tObj = TENSES.find(t => t.id === tId);
     document.getElementById('g-tense-name').innerText = tObj.name;
     document.getElementById('g-target-badge').innerText = `Bộ ${tObj.target} câu`;
@@ -698,15 +687,6 @@ const DEFAULT_VIDEOS = [
     if (filteredGrammar.length === 0) filteredGrammar = GRAMMAR_QUESTIONS;
     grammarIdx = 0;
     renderGrammarQ();
-  }
-
-  function initGrammarUIOnly() {
-    document.getElementById('core-tenses').innerHTML = TENSES.filter(t => t.core).map(t =>
-      `<span class="tense-pill core ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name}</span>`
-    ).join('');
-    document.getElementById('other-tenses').innerHTML = TENSES.filter(t => !t.core).map(t =>
-      `<span class="tense-pill ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name}</span>`
-    ).join('');
   }
 
   function renderGrammarQ() {
@@ -730,7 +710,7 @@ const DEFAULT_VIDEOS = [
       btn.classList.add('wrong');
       fb.className = 'feedback-box show fb-err';
       fb.innerHTML = `❌ Chưa đúng! ${qObj.exp}`;
-      addMistake(`Ngữ pháp: ${qObj.q} -> Đáp án: ${qObj.opts[qObj.ans]}`);
+      addMistake(`Ngữ pháp: ${qObj.q}`);
     }
   }
   function nextGrammar() { grammarIdx++; renderGrammarQ(); }
@@ -740,4 +720,73 @@ const DEFAULT_VIDEOS = [
     currentSpeak = SPEAKING_DATA[speakIdx % SPEAKING_DATA.length];
     document.getElementById('sp-topic').innerText = currentSpeak.topic;
     document.getElementById('sp-sentence').innerText = `"${currentSpeak.en}"`;
-    document.getElementById('sp-meaning').innerTe
+    document.getElementById('sp-meaning').innerText = currentSpeak.vi;
+    document.getElementById('sp-roleplay-q').innerText = currentSpeak.rq;
+    document.getElementById('sp-roleplay-a').innerText = currentSpeak.ra;
+    document.getElementById('sp-roleplay-a').style.display = 'none';
+    document.getElementById('sp-result').className = 'feedback-box';
+  }
+  function nextSpeaking() { speakIdx++; renderSpeaking(); }
+
+  function startSpeechRecognition() {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) return alert('Trình duyệt chưa hỗ trợ nhận diện giọng nói. Hãy dùng Google Chrome!');
+    const rec = new SpeechRec();
+    rec.lang = 'en-US';
+    const micBtn = document.getElementById('mic-btn');
+    micBtn.classList.add('mic-pulse');
+    micBtn.innerText = '🎙️ Đang nghe...';
+
+    rec.onresult = (e) => {
+      const said = e.results[0][0].transcript;
+      const fb = document.getElementById('sp-result');
+      fb.className = 'feedback-box show fb-ok';
+      fb.innerHTML = `🗣️ Bạn đọc: <b>"${said}"</b>`;
+    };
+    rec.onerror = () => alert('Không nghe rõ, thử lại gần mic hơn.');
+    rec.onend = () => { micBtn.classList.remove('mic-pulse'); micBtn.innerText = '🎙️ Bấm để nói'; };
+    rec.start();
+  }
+
+  /* --- 5. VERBS --- */
+  function renderVerbs(list) {
+    document.getElementById('verb-table-body').innerHTML = list.map(v =>
+      `<tr><td><b>${v.v1}</b></td><td>${v.v2}</td><td>${v.v3}</td><td>${v.vi}</td></tr>`
+    ).join('');
+  }
+  function filterVerbs() {
+    const kw = document.getElementById('verb-search').value.toLowerCase();
+    renderVerbs(IRREGULAR_VERBS.filter(v => v.v1.includes(kw) || v.v2.includes(kw) || v.v3.includes(kw) || v.vi.toLowerCase().includes(kw)));
+  }
+
+  /* --- 6. NOTEBOOK --- */
+  function addMistake(text) {
+    if (!mistakes.includes(text)) {
+      mistakes.unshift(text);
+      localStorage.setItem('eng_mistakes', JSON.stringify(mistakes.slice(0, 50)));
+    }
+  }
+  function clearMistakes() { mistakes = []; localStorage.removeItem('eng_mistakes'); renderNotebook(); }
+  function renderNotebook() {
+    document.getElementById('mistake-list').innerHTML = mistakes.length ? mistakes.map(m => `<div style="padding:6px 0; border-bottom:1px solid #eee;">• ${m}</div>`).join('') : 'Chưa có câu sai nào!';
+    document.getElementById('cheatsheet-list').innerHTML = CHEAT_SHEET.map(c =>
+      `<div style="margin-bottom:10px;">
+        <strong style="font-size:13px; color:var(--primary);">${c.cat}</strong>
+        ${c.items.map(i => `<div style="padding:5px 8px; background:#f8fafc; border-radius:6px; margin-top:4px; font-size:13px; display:flex; justify-content:space-between;">
+          <span>${i}</span> <span style="cursor:pointer;" onclick="speakText('${i.replace(/'/g, "\\'")}')">🔊</span>
+        </div>`).join('')}
+      </div>`
+    ).join('');
+  }
+
+  function speakText(text, rate = 1.0) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = rate;
+    window.speechSynthesis.speak(u);
+  }
+</script>
+</body>
+</html>
