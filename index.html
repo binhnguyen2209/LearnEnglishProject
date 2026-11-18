@@ -133,13 +133,13 @@
   <p>Lộ trình 6 bậc VN • Chuyên ngành làm đẹp & Đời sống Thụy Điển</p>
 </header>
 
-<div class="nav-tabs" id="nav-tabs-container">
-  <button class="nav-btn active" data-target="vocab">1. Từ vựng</button>
-  <button class="nav-btn" data-target="dictation">2. Nghe YouTube</button>
-  <button class="nav-btn" data-target="grammar">3. Ngữ pháp (12 Thì)</button>
-  <button class="nav-btn" data-target="speaking">4. Luyện nói</button>
-  <button class="nav-btn" data-target="verbs">5. Bất quy tắc</button>
-  <button class="nav-btn" data-target="notebook">6. Sổ tay & Câu sai</button>
+<div class="nav-tabs">
+  <button class="nav-btn active" onclick="switchTab('vocab', this)">1. Từ vựng</button>
+  <button class="nav-btn" onclick="switchTab('dictation', this)">2. Nghe YouTube</button>
+  <button class="nav-btn" onclick="switchTab('grammar', this)">3. Ngữ pháp (12 Thì)</button>
+  <button class="nav-btn" onclick="switchTab('speaking', this)">4. Luyện nói</button>
+  <button class="nav-btn" onclick="switchTab('verbs', this)">5. Bất quy tắc</button>
+  <button class="nav-btn" onclick="switchTab('notebook', this)">6. Sổ tay & Câu sai</button>
 </div>
 
 <div class="container">
@@ -268,7 +268,7 @@
         <span class="tag" id="g-target-badge">Bộ 300 câu</span>
       </div>
       <div style="background:#f1f5f9; padding:10px; border-radius:8px; font-size:13px; margin-bottom:12px;" id="g-formula">
-        Công thức: S + V(s/es) | Dùng cho thói quen, sự thật hiển nhiên.
+        Công thức: S + V(s/es) | Thói quen, sự thật hiển nhiên.
       </div>
 
       <p style="font-size:15px; font-weight:600; margin-bottom:12px;" id="g-question">Loading...</p>
@@ -447,7 +447,7 @@
     { cat: "💳 Thanh toán", items: ["Would you like to pay by card or Swish?", "Thank you so much! Have a lovely day!"] }
   ];
 
-  /* ================= LOGIC & FIX TAB SWITCHING ================= */
+  /* ================= GLOBAL STATE & FUNCTIONS ================= */
   let filteredVocab = [...VOCAB_DATA];
   let vocabIdx = 0;
   let vocabMode = 'quiz';
@@ -468,31 +468,27 @@
 
   let mistakes = JSON.parse(localStorage.getItem('eng_mistakes')) || [];
 
-  // Gắn sự kiện chuyển tab an toàn cho điện thoại
-  document.addEventListener('DOMContentLoaded', () => {
-    const navButtons = document.querySelectorAll('.nav-btn');
-    navButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        navButtons.forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-        
-        btn.classList.add('active');
-        const targetId = 'tab-' + btn.getAttribute('data-target');
-        const targetEl = document.getElementById(targetId);
-        if (targetEl) targetEl.classList.add('active');
-        
-        if (btn.getAttribute('data-target') === 'notebook') renderNotebook();
-      });
-    });
+  // Hàm chuyển tab (Toàn cục)
+  function switchTab(tabId, btnEl) {
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    
+    const targetEl = document.getElementById('tab-' + tabId);
+    if (targetEl) targetEl.classList.add('active');
+    if (btnEl) btnEl.classList.add('active');
+    
+    if (tabId === 'notebook') renderNotebook();
+  }
 
-    // Khởi động chạy lần đầu
+  // Khởi động dữ liệu khi trang tải xong
+  window.onload = function() {
     resetVocab();
     initVideoSelect();
     updateDictUI();
     initGrammar();
     renderSpeaking();
     renderVerbs(IRREGULAR_VERBS);
-  });
+  };
 
   /* --- 1. VOCAB LOGIC --- */
   function resetVocab() {
@@ -571,7 +567,7 @@
   /* --- 2. YOUTUBE DICTATION --- */
   function initVideoSelect() {
     const sel = document.getElementById('video-select');
-    sel.innerHTML = videos.map((v, idx) => `<option value="${idx}">${v.title}</option>`).join('');
+    if(sel) sel.innerHTML = videos.map((v, idx) => `<option value="${idx}">${v.title}</option>`).join('');
   }
 
   function onYouTubeIframeAPIReady() {
@@ -591,14 +587,20 @@
   }
 
   function updateDictUI() {
-    document.getElementById('dict-progress').innerText = `Câu ${currentSegIdx + 1} / ${currentVideo.segments.length}`;
-    document.getElementById('dict-input').value = '';
-    document.getElementById('dict-result').style.display = 'none';
-    document.getElementById('full-script-box').innerHTML = currentVideo.segments.map((s, i) =>
-      `<div class="script-item ${i === currentSegIdx ? 'active-line' : ''}" onclick="jumpToSegment(${i})">
-        <b>#${i + 1}:</b> ${s.en} <br/><span style="color:var(--muted)">${s.vi}</span>
-      </div>`
-    ).join('');
+    const prog = document.getElementById('dict-progress');
+    if(prog) prog.innerText = `Câu ${currentSegIdx + 1} / ${currentVideo.segments.length}`;
+    const inp = document.getElementById('dict-input');
+    if(inp) inp.value = '';
+    const res = document.getElementById('dict-result');
+    if(res) res.style.display = 'none';
+    const scriptBox = document.getElementById('full-script-box');
+    if(scriptBox) {
+      scriptBox.innerHTML = currentVideo.segments.map((s, i) =>
+        `<div class="script-item ${i === currentSegIdx ? 'active-line' : ''}" onclick="jumpToSegment(${i})">
+          <b>#${i + 1}:</b> ${s.en} <br/><span style="color:var(--muted)">${s.vi}</span>
+        </div>`
+      ).join('');
+    }
   }
 
   function playCurrentSegment() {
@@ -616,7 +618,7 @@
   function setSpeed(rate) { if (player && player.setPlaybackRate) player.setPlaybackRate(rate); }
   function toggleFullScript() {
     const box = document.getElementById('full-script-box');
-    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    if(box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
   }
   function handleDictKey(e) {
     if (e.ctrlKey) { e.preventDefault(); playCurrentSegment(); }
@@ -642,7 +644,7 @@
 
   function toggleAddVideoForm() {
     const f = document.getElementById('add-video-form');
-    f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    if(f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
   }
 
   function saveCustomVideo() {
@@ -667,26 +669,50 @@
 
   /* --- 3. GRAMMAR --- */
   function initGrammar() {
-    document.getElementById('core-tenses').innerHTML = TENSES.filter(t => t.core).map(t =>
-      `<span class="tense-pill core ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (300)</span>`
-    ).join('');
-    document.getElementById('other-tenses').innerHTML = TENSES.filter(t => !t.core).map(t =>
-      `<span class="tense-pill ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (100)</span>`
-    ).join('');
+    const coreEl = document.getElementById('core-tenses');
+    const otherEl = document.getElementById('other-tenses');
+    if(coreEl) {
+      coreEl.innerHTML = TENSES.filter(t => t.core).map(t =>
+        `<span class="tense-pill core ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (300)</span>`
+      ).join('');
+    }
+    if(otherEl) {
+      otherEl.innerHTML = TENSES.filter(t => !t.core).map(t =>
+        `<span class="tense-pill ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (100)</span>`
+      ).join('');
+    }
     selectTense(currentTense);
   }
 
   function selectTense(tId) {
     currentTense = tId;
+    initGrammarUIOnly();
     const tObj = TENSES.find(t => t.id === tId);
-    document.getElementById('g-tense-name').innerText = tObj.name;
-    document.getElementById('g-target-badge').innerText = `Bộ ${tObj.target} câu`;
-    document.getElementById('g-formula').innerText = tObj.formula;
+    if(tObj) {
+      document.getElementById('g-tense-name').innerText = tObj.name;
+      document.getElementById('g-target-badge').innerText = `Bộ ${tObj.target} câu`;
+      document.getElementById('g-formula').innerText = tObj.formula;
+    }
 
     filteredGrammar = GRAMMAR_QUESTIONS.filter(q => q.tense === tId);
     if (filteredGrammar.length === 0) filteredGrammar = GRAMMAR_QUESTIONS;
     grammarIdx = 0;
     renderGrammarQ();
+  }
+
+  function initGrammarUIOnly() {
+    const coreEl = document.getElementById('core-tenses');
+    const otherEl = document.getElementById('other-tenses');
+    if(coreEl) {
+      coreEl.innerHTML = TENSES.filter(t => t.core).map(t =>
+        `<span class="tense-pill core ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name}</span>`
+      ).join('');
+    }
+    if(otherEl) {
+      otherEl.innerHTML = TENSES.filter(t => !t.core).map(t =>
+        `<span class="tense-pill ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name}</span>`
+      ).join('');
+    }
   }
 
   function renderGrammarQ() {
@@ -750,9 +776,12 @@
 
   /* --- 5. VERBS --- */
   function renderVerbs(list) {
-    document.getElementById('verb-table-body').innerHTML = list.map(v =>
-      `<tr><td><b>${v.v1}</b></td><td>${v.v2}</td><td>${v.v3}</td><td>${v.vi}</td></tr>`
-    ).join('');
+    const tbody = document.getElementById('verb-table-body');
+    if(tbody) {
+      tbody.innerHTML = list.map(v =>
+        `<tr><td><b>${v.v1}</b></td><td>${v.v2}</td><td>${v.v3}</td><td>${v.vi}</td></tr>`
+      ).join('');
+    }
   }
   function filterVerbs() {
     const kw = document.getElementById('verb-search').value.toLowerCase();
@@ -768,15 +797,19 @@
   }
   function clearMistakes() { mistakes = []; localStorage.removeItem('eng_mistakes'); renderNotebook(); }
   function renderNotebook() {
-    document.getElementById('mistake-list').innerHTML = mistakes.length ? mistakes.map(m => `<div style="padding:6px 0; border-bottom:1px solid #eee;">• ${m}</div>`).join('') : 'Chưa có câu sai nào!';
-    document.getElementById('cheatsheet-list').innerHTML = CHEAT_SHEET.map(c =>
-      `<div style="margin-bottom:10px;">
-        <strong style="font-size:13px; color:var(--primary);">${c.cat}</strong>
-        ${c.items.map(i => `<div style="padding:5px 8px; background:#f8fafc; border-radius:6px; margin-top:4px; font-size:13px; display:flex; justify-content:space-between;">
-          <span>${i}</span> <span style="cursor:pointer;" onclick="speakText('${i.replace(/'/g, "\\'")}')">🔊</span>
-        </div>`).join('')}
-      </div>`
-    ).join('');
+    const mList = document.getElementById('mistake-list');
+    if(mList) mList.innerHTML = mistakes.length ? mistakes.map(m => `<div style="padding:6px 0; border-bottom:1px solid #eee;">• ${m}</div>`).join('') : 'Chưa có câu sai nào!';
+    const cList = document.getElementById('cheatsheet-list');
+    if(cList) {
+      cList.innerHTML = CHEAT_SHEET.map(c =>
+        `<div style="margin-bottom:10px;">
+          <strong style="font-size:13px; color:var(--primary);">${c.cat}</strong>
+          ${c.items.map(i => `<div style="padding:5px 8px; background:#f8fafc; border-radius:6px; margin-top:4px; font-size:13px; display:flex; justify-content:space-between;">
+            <span>${i}</span> <span style="cursor:pointer;" onclick="speakText('${i.replace(/'/g, "\\'")}')">🔊</span>
+          </div>`).join('')}
+        </div>`
+      ).join('');
+    }
   }
 
   function speakText(text, rate = 1.0) {
