@@ -144,14 +144,14 @@
 
 <div class="container">
 
-  <!-- ==================== 1. TỪ VỰNG (VÒNG LẶP 10 TỪ THÔNG MINH) ==================== -->
+  <!-- ==================== 1. TỪ VỰNG (VÒNG LẶP 10 TỪ HOẶC ÔN TẬP ĐÃ THUỘC) ==================== -->
   <div id="tab-vocab" class="tab-content active">
     <div class="card">
       <div class="card-title">
-        <span>Cài đặt bài học từ vựng (Hàng đợi 10 từ xoay vòng)</span>
+        <span id="vocab-mode-title">Cài đặt bài học từ vựng (Hàng đợi 10 từ xoay vòng)</span>
         <span class="tag" id="vocab-counter">0/10</span>
       </div>
-      <div class="grid-2">
+      <div id="normal-vocab-filters" class="grid-2">
         <select id="vocab-level" onchange="initVocabQueue()">
           <option value="all">Tất cả trình độ (Bậc 1-6)</option>
           <option value="1">Bậc 1 (A1 - Cơ bản)</option>
@@ -170,10 +170,11 @@
           <option value="sweden">🇸🇪 Cuộc sống Thụy Điển</option>
         </select>
       </div>
-      <div class="grid-2">
+      <div id="vocab-mode-switcher" class="grid-2">
         <button class="btn btn-primary" id="mode-quiz-btn" onclick="setVocabMode('quiz')">Trắc nghiệm A-B-C-D</button>
         <button class="btn btn-secondary" id="mode-type-btn" onclick="setVocabMode('type')">Nhìn Việt gõ Anh</button>
       </div>
+      <button id="exit-review-btn" class="btn btn-danger btn-block" style="display:none; margin-top:8px;" onclick="exitReviewMode()">❌ Thoát chế độ ôn tập đã thuộc (Trở về học mới)</button>
     </div>
 
     <div class="card" id="vocab-card">
@@ -181,7 +182,7 @@
         <span class="tag" id="v-badge">Bậc 1 • Nail</span>
         <div style="display:flex; gap:6px;">
           <button class="btn btn-sm btn-secondary" onclick="speakText(currentVocab.en)">🔊 Nghe</button>
-          <button class="btn btn-sm btn-success" onclick="markCurrentAsMastered()">✅ Đánh dấu Đã thuộc</button>
+          <button class="btn btn-sm btn-success" id="master-action-btn" onclick="markCurrentAsMastered()">✅ Đánh dấu Đã thuộc</button>
         </div>
       </div>
 
@@ -215,7 +216,7 @@
         <span class="tag" id="store-stats">0 tổng số</span>
       </div>
       <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">
-        Quản lý các từ đã thuộc và bấm <b>Ôn tập</b> để luyện lại bất cứ lúc nào!
+        Quản lý các từ đã thuộc và bấm <b>Ôn tập</b> để luyện lại toàn bộ từ đã nhớ bất cứ lúc nào!
       </p>
       <div class="grid-2">
         <button class="btn btn-primary" onclick="renderVocabStore('unmastered')">Từ chưa thuộc (Cần cày)</button>
@@ -455,10 +456,38 @@
   ];
 
   const GRAMMAR_QUESTIONS = [
-    { tense: "pres_simple", q: "She usually ______ gel nails for regular clients every morning.", opts: ["do", "does", "did", "doing"], ans: 1, exp: "Chủ ngữ số ít 'She' + thói quen -> dùng does." },
-    { tense: "past_simple", q: "Yesterday, a Swedish customer ______ a full set of volume lashes.", opts: ["book", "books", "booked", "has booked"], ans: 2, exp: "Có 'Yesterday' -> dùng Quá khứ đơn 'booked'." },
-    { tense: "fut_simple", q: "Don't worry, I ______ fix that broken nail for you right now.", opts: ["will", "am", "was", "have"], ans: 0, exp: "Quyết định ngay lúc nói -> dùng 'will'." },
-    { tense: "pres_perf", q: "I ______ as a nail technician for over two years.", opts: ["work", "worked", "have worked", "am working"], ans: 2, exp: "Kéo dài từ quá khứ tới nay -> dùng 'have worked'." }
+    { 
+      tense: "pres_simple", 
+      q: "She usually ______ gel nails for regular clients every morning.", 
+      opts: ["do", "does", "did", "doing"], 
+      ans: 1, 
+      whyWrong: "Bạn chọn sai vì 'did' là thì quá khứ (không phù hợp với 'usually' chỉ thói quen hiện tại), 'do' dùng cho chủ ngữ số nhiều (I, you, we, they), còn 'doing' thiếu động từ tôn ti.",
+      whyRight: "Đáp án đúng là 'does' vì chủ ngữ 'She' là ngôi thứ 3 số ít ở thì Hiện tại đơn, đi với từ chỉ tần suất 'usually'." 
+    },
+    { 
+      tense: "past_simple", 
+      q: "Yesterday, a Swedish customer ______ a full set of volume lashes.", 
+      opts: ["book", "books", "booked", "has booked"], 
+      ans: 2, 
+      whyWrong: "Sai vì 'Yesterday' (hôm qua) là dấu hiệu nhận biết của thì Quá khứ đơn, do đó không thể dùng các dạng hiện tại như 'book', 'books' hay hiện tại hoàn thành 'has booked'.",
+      whyRight: "Đáp án đúng là 'booked' (chia dạng V-ed ở quá khứ đơn)." 
+    },
+    { 
+      tense: "fut_simple", 
+      q: "Don't worry, I ______ fix that broken nail for you right now.", 
+      opts: ["will", "am", "was", "have"], 
+      ans: 0, 
+      whyWrong: "Sai vì đây là một quyết định giúp đỡ người khác ngay tại thời điểm nói (lời hứa/quyết định nhanh), cấu trúc ngữ pháp bắt buộc phải dùng trợ động từ 'will'.",
+      whyRight: "Đáp án đúng là 'will' + V nguyên mẫu ('will fix')." 
+    },
+    { 
+      tense: "pres_perf", 
+      q: "I ______ as a nail technician for over two years.", 
+      opts: ["work", "worked", "have worked", "am working"], 
+      ans: 2, 
+      whyWrong: "Sai vì cụm từ 'for over two years' (hơn 2 năm nay) chỉ hành động bắt đầu từ quá khứ và kéo dài liên tục đến hiện tại, không dùng hiện tại đơn hay quá khứ đơn đơn thuần.",
+      whyRight: "Đáp án đúng là 'have worked' (thì Hiện tại hoàn thành để chỉ hành động kéo dài tới hiện tại)." 
+    }
   ];
 
   const SPEAKING_DATA = [
@@ -495,11 +524,11 @@
   /* ================= GLOBAL STATE & FUNCTIONS ================= */
   let masteredIds = JSON.parse(localStorage.getItem('mastered_vocab_ids')) || [];
   
-  // Hàng đợi 10 từ xoay vòng thông minh
   let vocabQueue = [];
   let queueIdx = 0;
   let vocabMode = 'quiz';
   let currentVocab = null;
+  let isReviewingMastered = false; // Cờ kiểm tra đang ở chế độ ôn tập từ đã thuộc hay học mới
 
   let lessons = JSON.parse(localStorage.getItem('custom_lessons')) || DEFAULT_LESSONS;
   let currentLesson = lessons[0];
@@ -534,11 +563,10 @@
     renderVerbs(IRREGULAR_VERBS);
   };
 
-  /* --- 1. VOCAB QUEUE LOGIC (10 TỪ XOAY VÒNG) --- */
+  /* --- 1. VOCAB QUEUE LOGIC --- */
   function getPoolSource() {
     const lvl = document.getElementById('vocab-level').value;
     const top = document.getElementById('vocab-topic').value;
-    // Lấy những từ chưa thuộc thuộc bộ lọc
     let pool = VOCAB_DATA.filter(v => 
       (lvl === 'all' || v.level === lvl) && 
       (top === 'all' || v.topic === top) &&
@@ -551,10 +579,42 @@
   }
 
   function initVocabQueue() {
+    isReviewingMastered = false;
+    document.getElementById('vocab-mode-title').innerText = "Cài đặt bài học từ vựng (Hàng đợi 10 từ xoay vòng)";
+    document.getElementById('normal-vocab-filters').style.display = 'grid';
+    document.getElementById('vocab-mode-switcher').style.display = 'grid';
+    document.getElementById('exit-review-btn').style.display = 'none';
+    document.getElementById('master-action-btn').style.display = 'inline-flex';
+
     const pool = getPoolSource().sort(() => 0.5 - Math.random());
-    vocabQueue = pool.slice(0, 10); // Lấy đúng 10 từ làm hàng đợi
+    vocabQueue = pool.slice(0, 10);
     queueIdx = 0;
     renderVocab();
+  }
+
+  // Bắt đầu chế độ ôn tập tất cả từ Đã thuộc
+  function startReviewMastered() {
+    const masteredWords = VOCAB_DATA.filter(v => masteredIds.includes(v.id));
+    if(masteredWords.length === 0) {
+      return alert('Chưa có từ nào được đánh dấu là Đã thuộc để ôn tập!');
+    }
+    isReviewingMastered = true;
+    vocabQueue = [...masteredWords].sort(() => 0.5 - Math.random());
+    queueIdx = 0;
+
+    // Cập nhật giao diện tab Từ vựng sang chế độ Ôn tập
+    document.getElementById('vocab-mode-title').innerText = `🔄 Đang ôn tập toàn bộ từ Đã thuộc (${vocabQueue.length} từ)`;
+    document.getElementById('normal-vocab-filters').style.display = 'none';
+    document.getElementById('vocab-mode-switcher').style.display = 'none';
+    document.getElementById('exit-review-btn').style.display = 'block';
+    document.getElementById('master-action-btn').style.display = 'none'; // Ẩn nút thuộc vì đã thuộc rồi
+
+    switchTab('vocab', document.querySelectorAll('.nav-btn')[0]);
+    renderVocab();
+  }
+
+  function exitReviewMode() {
+    initVocabQueue();
   }
 
   function setVocabMode(mode) {
@@ -568,10 +628,10 @@
 
   function renderVocab() {
     if (vocabQueue.length === 0) {
-      document.getElementById('v-prompt').innerText = "🎉 Chúc mừng! Bạn đã hoàn thành hàng đợi từ vựng.";
-      document.getElementById('v-phonetic').innerText = "Hệ thống sẽ tải lại hàng đợi mới cho bạn.";
-      document.getElementById('vocab-counter').innerText = "0/10";
-      setTimeout(initVocabQueue, 1500);
+      document.getElementById('v-prompt').innerText = "🎉 Hoàn thành danh sách!";
+      document.getElementById('v-phonetic').innerText = isReviewingMastered ? "Bạn đã ôn tập xong tất cả từ đã thuộc." : "Hệ thống đang tải hàng đợi mới.";
+      document.getElementById('vocab-counter').innerText = "0/0";
+      if(!isReviewingMastered) setTimeout(initVocabQueue, 1500);
       return;
     }
     currentVocab = vocabQueue[queueIdx % vocabQueue.length];
@@ -630,17 +690,14 @@
     renderVocab(); 
   }
 
-  // Khi bấm thuộc: Bỏ từ này khỏi hàng đợi 10 từ và bù ngay 1 từ mới từ pool vào
   function markCurrentAsMastered() {
     if(!currentVocab) return;
     if(!masteredIds.includes(currentVocab.id)) {
       masteredIds.push(currentVocab.id);
       localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
     }
-    // Xóa từ hiện tại khỏi queue
     vocabQueue.splice(queueIdx % vocabQueue.length, 1);
 
-    // Lấy thêm 1 từ mới chưa thuộc từ pool bù vào để giữ đúng 10 từ trong hàng đợi
     const pool = getPoolSource().filter(v => !vocabQueue.some(q => q.id === v.id));
     if(pool.length > 0) {
       const nextWord = pool[Math.floor(Math.random() * pool.length)];
@@ -696,19 +753,7 @@
     }
     localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
     renderVocabStore(filterType);
-    initVocabQueue();
-  }
-
-  function startReviewMastered() {
-    const masteredWords = VOCAB_DATA.filter(v => masteredIds.includes(v.id));
-    if(masteredWords.length === 0) {
-      return alert('Chưa có từ nào được đánh dấu là Đã thuộc để ôn tập!');
-    }
-    vocabQueue = [...masteredWords].sort(() => 0.5 - Math.random()).slice(0, 10);
-    queueIdx = 0;
-    switchTab('vocab', document.querySelector('.nav-btn'));
-    renderVocab();
-    alert('Đã chuyển sang chế độ ôn tập từ đã thuộc!');
+    if(!isReviewingMastered) initVocabQueue();
   }
 
   /* --- 2. DICTATION (AI AUDIO) --- */
@@ -800,7 +845,7 @@
     alert('Đã lưu bài học mới!');
   }
 
-  /* --- 3. GRAMMAR --- */
+  /* --- 3. GRAMMAR (GIẢI THÍCH CHI TIẾT KHI CHỌN SAI) --- */
   function initGrammar() {
     const coreEl = document.getElementById('core-tenses');
     const otherEl = document.getElementById('other-tenses');
@@ -854,22 +899,22 @@
     document.getElementById('g-feedback').className = 'feedback-box';
     const letters = ['A', 'B', 'C', 'D'];
     document.getElementById('g-options').innerHTML = qObj.opts.map((opt, idx) =>
-      `<button class="option-btn" onclick="checkGrammar(this, ${idx === qObj.ans})"><b>${letters[idx]}.</b> ${opt}</button>`
+      `<button class="option-btn" onclick="checkGrammar(this, ${idx === qObj.ans}, '${opt}')"><b>${letters[idx]}.</b> ${opt}</button>`
     ).join('');
   }
 
-  function checkGrammar(btn, isCorrect) {
+  function checkGrammar(btn, isCorrect, chosenOpt) {
     const qObj = filteredGrammar[grammarIdx % filteredGrammar.length];
     const fb = document.getElementById('g-feedback');
     if (isCorrect) {
       btn.classList.add('correct');
       fb.className = 'feedback-box show fb-ok';
-      fb.innerHTML = `✅ Chính xác! ${qObj.exp}`;
+      fb.innerHTML = `✅ Chính xác tuyệt đối!<br/><b>Vì sao đúng:</b> ${qObj.whyRight}`;
     } else {
       btn.classList.add('wrong');
       fb.className = 'feedback-box show fb-err';
-      fb.innerHTML = `❌ Chưa đúng! ${qObj.exp}`;
-      addMistake(`Ngữ pháp: ${qObj.q}`);
+      fb.innerHTML = `❌ Chưa chính xác!<br/><b>Phân tích lỗi sai:</b> ${qObj.whyWrong}<br/><br/><b>Bản chất đúng:</b> ${qObj.whyRight}`;
+      addMistake(`Ngữ pháp: ${qObj.q} (Bạn chọn sai: ${chosenOpt})`);
     }
   }
   function nextGrammar() { grammarIdx++; renderGrammarQ(); }
