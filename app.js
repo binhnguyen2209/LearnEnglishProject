@@ -1185,7 +1185,9 @@ let lastSpeakingScore = 0;
 let canAdvanceSpeaking = false;
 let mainSpeakingScore = 0;
 let mainCanAdvanceSpeaking = false;
+let pendingReturnToCurrentSpeak = false;
 let activePracticeTarget = null;
+let repracticeTargetObj = null;
 let pendingPassedRecord = null;
 let isRepracticingFromHistory = false;
 let repracticeRecordId = null;
@@ -1280,7 +1282,9 @@ function renderSpeaking() {
   canAdvanceSpeaking = false;
   mainSpeakingScore = 0;
   mainCanAdvanceSpeaking = false;
+  pendingReturnToCurrentSpeak = false;
   activePracticeTarget = null;
+  repracticeTargetObj = null;
   pendingPassedRecord = null;
   isRepracticingFromHistory = false;
   repracticeRecordId = null;
@@ -1300,6 +1304,16 @@ function renderSpeaking() {
 }
 
 function nextSpeaking() {
+  if (pendingReturnToCurrentSpeak) {
+    pendingReturnToCurrentSpeak = false;
+    lastSpeakingScore = 0;
+    canAdvanceSpeaking = false;
+    mainSpeakingScore = 0;
+    mainCanAdvanceSpeaking = false;
+    renderSpeaking();
+    return;
+  }
+
   if (!mainCanAdvanceSpeaking) {
     const fb = document.getElementById('sp-result');
     if (fb) {
@@ -1386,18 +1400,22 @@ function practiceFromHistory(recordId) {
   const item = spokenHistory.find((r) => r.id === recordId);
   if (!item || !item.targetEn) return;
 
-  isRepracticingFromHistory = true;
-  repracticeRecordId = recordId;
-  activePracticeTarget = {
+  const targetFromHistory = {
     en: item.targetEn,
     vi: item.targetVi || '',
     topic: item.topic || 'Ôn từ lịch sử'
   };
 
-  setText('sp-topic', `Đọc lại: ${activePracticeTarget.topic}`);
-  setText('sp-sentence', `"${activePracticeTarget.en}"`);
-  setText('sp-meaning', activePracticeTarget.vi || '(Đọc lại câu mẫu này để chấm điểm)');
-  startSpeechRecognition();
+  pendingReturnToCurrentSpeak = false;
+  isRepracticingFromHistory = true;
+  repracticeRecordId = recordId;
+  activePracticeTarget = targetFromHistory;
+  repracticeTargetObj = targetFromHistory;
+
+  setText('sp-topic', `Đọc lại: ${targetFromHistory.topic}`);
+  setText('sp-sentence', `"${targetFromHistory.en}"`);
+  setText('sp-meaning', targetFromHistory.vi || '(Đọc lại câu mẫu này để chấm điểm)');
+  startSpeechRecognition(targetFromHistory);
 }
 
 function clearSpokenHistory() {
@@ -1448,11 +1466,11 @@ function renderSpokenHistory() {
     .join('');
 }
 
-function startSpeechRecognition() {
+function startSpeechRecognition(explicitTarget = null) {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) return alert('Trình duyệt chưa hỗ trợ nhận diện giọng nói. Hãy dùng Google Chrome!');
 
-  const targetObj = activePracticeTarget || currentSpeak;
+  const targetObj = explicitTarget || activePracticeTarget || repracticeTargetObj || currentSpeak;
   const targetEn = targetObj ? targetObj.en : '';
 
   const rec = new SpeechRec();
@@ -1465,15 +1483,12 @@ function startSpeechRecognition() {
     const said = e.results[0][0].transcript;
     const evalResult = scorePronunciation(targetEn, said);
 
-    lastSpeakingScore = evalResult.score;
-    canAdvanceSpeaking = evalResult.passed;
-    updateNextSpeakingButtonUI();
-
     const wasRepracticing = isRepracticingFromHistory;
+    const currentRecordId = repracticeRecordId;
 
     if (wasRepracticing) {
-      if (evalResult.passed && repracticeRecordId) {
-        const idx = spokenHistory.findIndex((r) => r.id === repracticeRecordId);
+      if (evalResult.passed && currentRecordId) {
+        const idx = spokenHistory.findIndex((r) => r.id === currentRecordId);
         if (idx !== -1) {
           spokenHistory[idx] = {
             ...spokenHistory[idx],
@@ -1484,12 +1499,18 @@ function startSpeechRecognition() {
           };
           saveSpokenHistory();
         }
+        pendingReturnToCurrentSpeak = true;
+        lastSpeakingScore = evalResult.score;
+        canAdvanceSpeaking = true;
+        updateNextSpeakingButtonUI();
+      } else {
+        pendingReturnToCurrentSpeak = false;
+        lastSpeakingScore = mainSpeakingScore;
+        canAdvanceSpeaking = mainCanAdvanceSpeaking;
+        updateNextSpeakingButtonUI();
       }
-      // Giữ nguyên trạng thái qua câu của câu chính đang học (vd: câu thứ 3)
-      lastSpeakingScore = mainSpeakingScore;
-      canAdvanceSpeaking = mainCanAdvanceSpeaking;
-      updateNextSpeakingButtonUI();
     } else {
+      pendingReturnToCurrentSpeak = false;
       mainSpeakingScore = evalResult.score;
       mainCanAdvanceSpeaking = evalResult.passed;
       lastSpeakingScore = evalResult.score;
@@ -1508,6 +1529,7 @@ function startSpeechRecognition() {
     }
 
     activePracticeTarget = null;
+    repracticeTargetObj = null;
     isRepracticingFromHistory = false;
     repracticeRecordId = null;
 
@@ -1518,9 +1540,13 @@ function startSpeechRecognition() {
       ? `<div style="margin-top:6px; font-size:12.5px;">Từ cần đọc rõ hơn: <b>${evalResult.missingWords.join(', ')}</b></div>`
       : '';
 
-    const nextHint = evalResult.passed
-      ? `<div style="margin-top:6px; font-size:12.5px;">🎉 Đạt chuẩn ≥ ${PASS_SCORE_THRESHOLD}/100! Bấm <b>Mẫu câu tiếp theo</b> để lưu vào lịch sử và qua câu mới.</div>`
-      : `<div style="margin-top:6px; font-size:12.5px;">⚠️ Cần đạt ít nhất <b>${PASS_SCORE_THRESHOLD}/100</b> điểm để qua câu tiếp theo. Hãy thử đọc lại nhé!</div>`;
+    const nextHint = wasRepracticing
+      ? (evalResult.passed
+          ? `<div style="margin-top:6px; font-size:12.5px;">✅ Đã cập nhật điểm câu ôn! Bấm <b>Mẫu câu tiếp theo</b> để quay về đọc tiếp câu chính hiện tại.</div>`
+          : `<div style="margin-top:6px; font-size:12.5px;">⚠️ Cần đạt ít nhất <b>${PASS_SCORE_THRESHOLD}/100</b> điểm để đạt câu ôn này. Hãy thử đọc lại nhé!</div>`)
+      : evalResult.passed
+        ? `<div style="margin-top:6px; font-size:12.5px;">🎉 Đạt chuẩn ≥ ${PASS_SCORE_THRESHOLD}/100! Bấm <b>Mẫu câu tiếp theo</b> để lưu vào lịch sử và qua câu mới.</div>`
+        : `<div style="margin-top:6px; font-size:12.5px;">⚠️ Cần đạt ít nhất <b>${PASS_SCORE_THRESHOLD}/100</b> điểm để qua câu tiếp theo. Hãy thử đọc lại nhé!</div>`;
 
     fb.innerHTML = `
       <div><b>Điểm phát âm: ${evalResult.score}/100</b> ${evalResult.passed ? '✅ ĐẠT' : '❌ CHƯA ĐẠT'}</div>
@@ -1605,6 +1631,13 @@ function renderNotebook() {
 let speakCallCount = 0;
 
 function speakText(text, rate = 0.95) {
+  speakCallCount++;
+  console.trace();
+
+  if (isFirstTime) {
+    isFirstTime = false;
+    return;
+  }
   if (!text || !('speechSynthesis' in window)) return;
 
   window.speechSynthesis.cancel();
