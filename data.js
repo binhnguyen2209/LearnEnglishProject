@@ -1,8 +1,23 @@
-/* ================= KHO DỮ LIỆU ĐỘC LẬP (DATA.JS) ================= */
+const TENSES = [
+    { id: "pres_simple", name: "1. Hiện tại đơn", target: 300, core: true, formula: "S + V(s/es) | Thói quen, sự thật hiển nhiên." },
+    { id: "past_simple", name: "2. Quá khứ đơn", target: 300, core: true, formula: "S + V2/ed | Hành động đã kết thúc trong quá khứ." },
+    { id: "fut_simple", name: "3. Tương lai đơn", target: 300, core: true, formula: "S + will + V0 | Quyết định nhanh, dự đoán." },
+    { id: "pres_perf", name: "4. Hiện tại hoàn thành", target: 300, core: true, formula: "S + have/has + V3/ed | Từ quá khứ kéo dài đến hiện tại." },
+    { id: "pres_cont", name: "5. Hiện tại tiếp diễn", target: 100, core: false, formula: "S + am/is/are + V-ing | Đang xảy ra ngay lúc nói." },
+    { id: "past_cont", name: "6. Quá khứ tiếp diễn", target: 100, core: false, formula: "S + was/were + V-ing | Đang diễn ra tại thời điểm quá khứ." },
+    { id: "fut_cont", name: "7. Tương lai tiếp diễn", target: 100, core: false, formula: "S + will be + V-ing | Sẽ đang diễn ra trong tương lai." },
+    { id: "past_perf", name: "8. Quá khứ hoàn thành", target: 100, core: false, formula: "S + had + V3/ed | Xảy ra trước hành động quá khứ khác." },
+    { id: "fut_perf", name: "9. Tương lai hoàn thành", target: 100, core: false, formula: "S + will have + V3/ed | Hoàn tất trước mốc tương lai." },
+    { id: "pres_perf_cont", name: "10. HT HT Tiếp diễn", target: 100, core: false, formula: "S + have/has been + V-ing | Nhấn mạnh tính liên tục." },
+    { id: "past_perf_cont", name: "11. QK HT Tiếp diễn", target: 100, core: false, formula: "S + had been + V-ing | Liên tục trước mốc quá khứ." },
+    { id: "fut_perf_cont", name: "12. TL HT Tiếp diễn", target: 100, core: false, formula: "S + will have been + V-ing | Liên tục tính đến mốc tương lai." }
+  ];
+
+  /* ================= KHO DỮ LIỆU ĐỘC LẬP (DATA.JS) ================= */
 /* Data được mở rộng theo schema mẫu. Các mã tense giữ nguyên để tương thích với app hiện tại. */
 
-// 1. KHO 1200 TỪ VỰNG A1-B1
-const VOCAB_DATA = [
+  // 1. KHO 1200 TỪ VỰNG A1-B1
+  const VOCAB_DATA = [
   {
     "id": 1,
     "level": "1",
@@ -9605,8 +9620,8 @@ const VOCAB_DATA = [
   }
 ];
 
-// 2. KHO 50 CHỦ ĐỀ HỘI THOẠI A1-B2
-const LESSONS_DATA = [
+  // 2. KHO 50 CHỦ ĐỀ HỘI THOẠI A1-B2
+  const LESSONS_DATA = [
   {
     "id": "les1",
     "title": "1. Đón khách và xác nhận lịch hẹn (A1)",
@@ -10908,8 +10923,9 @@ const LESSONS_DATA = [
     ]
   }
 ];
-// 3. NGÂN HÀNG CÂU HỎI NGỮ PHÁP 12 THÌ (đúng số lượng yêu cầu)
-const GRAMMAR_QUESTIONS = [
+  
+  // 3. NGÂN HÀNG CÂU HỎI NGỮ PHÁP 12 THÌ (đúng số lượng yêu cầu)
+  const GRAMMAR_QUESTIONS = [
   {
     "tense": "pres_simple",
     "q": "I _____ the treatment room every morning.",
@@ -31712,8 +31728,8 @@ const GRAMMAR_QUESTIONS = [
   }
 ];
 
-// 4. LUYỆN NÓI 300 CÂU A1-B2
-const SPEAKING_DATA = [
+  // 4. LUYỆN NÓI 300 CÂU A1-B2
+  const SPEAKING_DATA = [
   {
     "topic": "Tư vấn Nail",
     "en": "What colour would you like today?",
@@ -33216,8 +33232,8 @@ const SPEAKING_DATA = [
   }
 ];
 
-// 5. ĐỘNG TỪ BẤT QUY TẮC
-const IRREGULAR_VERBS = [
+  // 5. ĐỘNG TỪ BẤT QUY TẮC
+  const IRREGULAR_VERBS = [
   {
     "v1": "arise",
     "v2": "arose",
@@ -34011,3 +34027,9 @@ const IRREGULAR_VERBS = [
     "vi": "vắt, xoắn"
   }
 ];
+  
+  const CHEAT_SHEET = [
+    { cat: "👋 Đón khách & Mời nước", items: ["Hi! Welcome in. How are you doing today?", "Would you like some water, tea, or coffee?"] },
+    { cat: "💅 Khi làm Nail & Nối mi", items: ["Is this length okay for you?", "Please put your hand inside the UV lamp."] },
+    { cat: "💳 Thanh toán", items: ["Would you like to pay by card or Swish?", "Thank you so much! Have a lovely day!"] }
+  ];
