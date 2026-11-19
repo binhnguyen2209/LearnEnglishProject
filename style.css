@@ -595,33 +595,53 @@ th { background: #f8fafc; font-weight: 700; }
 }
 
 .dict-bookmark-bar {
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #f8faff;
-  border: 1px solid #dbeafe;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+  border: 1px solid #bfdbfe;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .dict-bookmark-info {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 10px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #1e3a8a;
+  line-height: 1.4;
 }
 
 .dict-bookmark-dot {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: var(--primary);
+  background: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
   flex-shrink: 0;
+}
+
+#dict-resume-btn.btn {
+  margin-top: 6px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 9px;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+#dict-resume-btn.btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
 }
 
 .script-item-head {
@@ -650,4 +670,276 @@ th { background: #f8fafc; font-weight: 700; }
   background: #dcfce7;
   color: #15803d;
   white-space: nowrap;
+}
+/* DANH SÁCH CÂU ĐÃ ĐỌC */
+.spoken-history-box {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+}
+
+.spoken-history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 10px;
+}
+
+.spoken-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.spoken-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.spoken-history-item:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.spoken-history-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.spoken-said-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.spoken-target-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.spoken-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.spoken-empty {
+  text-align: center;
+  padding: 16px 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* CHẤM ĐIỂM ĐỌC */
+.spoken-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.spoken-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.spoken-score-pass {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.spoken-score-fail {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.spoken-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.spoken-history-main {
+  min-width: 200px;
+  flex: 1;
+}
+
+.spoken-said-text {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.spoken-target-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.spoken-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+#next-speaking-btn.btn-locked {
+  opacity: 0.65;
+  background: #64748b;
+}
+
+/* ÔN BÀI TẬP NGỮ PHÁP */
+.grammar-review-panel {
+  margin-top: 16px;
+}
+
+.g-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+
+.g-tense-group {
+  margin-bottom: 20px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+}
+
+.g-tense-group-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #dbeafe;
+}
+
+.g-review-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.g-review-card:last-child {
+  margin-bottom: 0;
+}
+
+.g-review-q {
+  font-weight: 700;
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.g-review-opts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.g-check-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  cursor: pointer;
+  font-size: 13.5px;
+  transition: all 0.15s ease;
+}
+
+.g-check-option:hover {
+  border-color: #60a5fa;
+  background: #eff6ff;
+}
+
+.g-check-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2563eb;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.g-check-option.is-right {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #14532d;
+  font-weight: 700;
+}
+
+.g-check-option.is-wrong {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #7f1d1d;
+  font-weight: 700;
+}
+
+.g-review-feedback {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  display: none;
+}
+
+.g-review-feedback.show {
+  display: block;
+}
+
+.g-review-feedback.ok {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.g-review-feedback.err {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
 }

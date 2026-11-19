@@ -13,6 +13,77 @@ let db = null;
 let auth = null;
 let currentUser = null;
 let syncTimeout = null;
+let isFirstTime = true;
+
+function getEmptyProgressState() {
+  return {
+    masteredIds: [],
+    dictProgressStore: {
+      lastLessonIdx: 0,
+      byLessonKey: {}
+    },
+    listeningProgressStore: {
+      currentSentenceIdx: 0,
+      maxSentenceIdx: 0
+    },
+    grammarProgressStore: {
+      lastTense: 'pres_simple',
+      byTense: {}
+    },
+    speaking_progress: 0,
+    mistakes: []
+  };
+}
+
+function applyProgressStateToUI(state) {
+  masteredIds = Array.isArray(state.masteredIds) ? state.masteredIds : [];
+  dictProgressStore = {
+    lastLessonIdx: Number.isInteger(state.dictProgressStore?.lastLessonIdx)
+      ? state.dictProgressStore.lastLessonIdx
+      : 0,
+    byLessonKey: normalizeLessonProgressMap(state.dictProgressStore?.byLessonKey)
+  };
+  listeningProgressStore = normalizeListeningProgress(state.listeningProgressStore);
+  grammarProgressStore = {
+    lastTense: typeof state.grammarProgressStore?.lastTense === 'string'
+      ? state.grammarProgressStore.lastTense
+      : 'pres_simple',
+    byTense:
+      state.grammarProgressStore?.byTense && typeof state.grammarProgressStore.byTense === 'object'
+        ? state.grammarProgressStore.byTense
+        : {}
+  };
+  mistakes = Array.isArray(state.mistakes) ? state.mistakes : [];
+
+  const safeSpeakIdx =
+    Number.isInteger(state.speaking_progress) && state.speaking_progress >= 0
+      ? state.speaking_progress
+      : 0;
+  if (typeof speakIdx !== 'undefined') {
+    speakIdx = safeSpeakIdx;
+  }
+  if (typeof SPEAKING_IDX_KEY !== 'undefined') {
+    localStorage.setItem(SPEAKING_IDX_KEY, String(safeSpeakIdx));
+  }
+
+  currentTense = grammarProgressStore.lastTense || 'pres_simple';
+  currentDictIdx = 0;
+  grammarIdx = 0;
+
+  localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
+  localStorage.setItem(DICT_PROGRESS_KEY, JSON.stringify(dictProgressStore));
+  localStorage.setItem(LISTENING_PROGRESS_KEY, JSON.stringify(listeningProgressStore));
+  localStorage.setItem(GRAMMAR_PROGRESS_KEY, JSON.stringify(grammarProgressStore));
+  localStorage.setItem('eng_mistakes', JSON.stringify(mistakes));
+
+  initVocabQueue(false);
+  initLessonSelect();
+  initGrammar();
+  if (typeof initSpeaking === 'function') {
+    initSpeaking();
+  }
+  renderNotebook();
+}
 
 function initFirebase() {
   if (!window.firebase || !FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") {
@@ -28,11 +99,17 @@ function initFirebase() {
   db = firebase.firestore();
 
   auth.onAuthStateChanged(async (user) => {
+    const prevUser = currentUser;
     currentUser = user || null;
     updateAuthUI();
 
     if (currentUser) {
       await loadUserProgressFromFirestore(currentUser.uid);
+    } else if (prevUser) {
+      // Đã đăng xuất: giữ nguyên dữ liệu trên Firestore của account cũ,
+      // chỉ reset vị trí/trạng thái đang hiển thị về trạng thái trắng sạch
+      clearTimeout(syncTimeout);
+      applyProgressStateToUI(getEmptyProgressState());
     }
   });
 }
@@ -57,7 +134,7 @@ function updateAuthUI() {
 
 async function signInWithGoogle() {
   if (!auth) {
-    return alert('Bạn chưa điền FIREBASE_CONFIG thật trong app.js!');
+    return alert('Chưa cấu hình FIREBASE_CONFIG hợp lệ trong app.js!');
   }
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -70,10 +147,32 @@ async function signInWithGoogle() {
 async function signOutGoogle() {
   if (!auth) return;
   try {
+    clearTimeout(syncTimeout);
     await auth.signOut();
   } catch (err) {
     alert('Đăng xuất thất bại: ' + err.message);
   }
+}
+
+function normalizeLessonProgressMap(rawMap) {
+  if (!rawMap || typeof rawMap !== 'object') return {};
+  const clean = {};
+  Object.keys(rawMap).forEach((k) => {
+    const item = rawMap[k] || {};
+    clean[k] = {
+      sentenceIdx: Number.isInteger(item.sentenceIdx) && item.sentenceIdx >= 0 ? item.sentenceIdx : 0,
+      maxVisitedIdx: Number.isInteger(item.maxVisitedIdx) && item.maxVisitedIdx >= 0 ? item.maxVisitedIdx : 0
+    };
+  });
+  return clean;
+}
+
+function normalizeListeningProgress(raw) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  return {
+    currentSentenceIdx: Number.isInteger(src.currentSentenceIdx) && src.currentSentenceIdx >= 0 ? src.currentSentenceIdx : 0,
+    maxSentenceIdx: Number.isInteger(src.maxSentenceIdx) && src.maxSentenceIdx >= 0 ? src.maxSentenceIdx : 0
+  };
 }
 
 async function loadUserProgressFromFirestore(uid) {
@@ -84,37 +183,19 @@ async function loadUserProgressFromFirestore(uid) {
 
     if (snap.exists) {
       const data = snap.data() || {};
-
-      if (Array.isArray(data.mastered_vocab_ids)) {
-        masteredIds = data.mastered_vocab_ids;
-        localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
-      }
-
-      if (data.dict_progress && typeof data.dict_progress === 'object') {
-        dictProgressStore = {
-          lastLessonIdx: Number.isInteger(data.dict_progress.lastLessonIdx) ? data.dict_progress.lastLessonIdx : 0,
-          byLessonKey: data.dict_progress.byLessonKey && typeof data.dict_progress.byLessonKey === 'object'
-            ? data.dict_progress.byLessonKey
-            : {}
-        };
-        localStorage.setItem(DICT_PROGRESS_KEY, JSON.stringify(dictProgressStore));
-      }
-
-      if (data.grammar_progress && typeof data.grammar_progress === 'object') {
-        grammarProgressStore = data.grammar_progress;
-        localStorage.setItem(GRAMMAR_PROGRESS_KEY, JSON.stringify(grammarProgressStore));
-      }
-
-      if (Array.isArray(data.mistakes)) {
-        mistakes = data.mistakes;
-        localStorage.setItem('eng_mistakes', JSON.stringify(mistakes));
-      }
-
-      initVocabQueue();
-      initLessonSelect();
-      initGrammar();
-      renderNotebook();
+      applyProgressStateToUI({
+        masteredIds: Array.isArray(data.mastered_vocab_ids) ? data.mastered_vocab_ids : [],
+        dictProgressStore: data.dict_progress || { lastLessonIdx: 0, byLessonKey: {} },
+        listeningProgressStore: data.listening_progress || { currentSentenceIdx: 0, maxSentenceIdx: 0 },
+        grammarProgressStore: data.grammar_progress || { lastTense: 'pres_simple', byTense: {} },
+        speaking_progress:
+          Number.isInteger(data.speaking_progress) && data.speaking_progress >= 0
+            ? data.speaking_progress
+            : 0,
+        mistakes: Array.isArray(data.mistakes) ? data.mistakes : []
+      });
     } else {
+      applyProgressStateToUI(getEmptyProgressState());
       await pushProgressNow(uid);
     }
   } catch (err) {
@@ -125,18 +206,31 @@ async function loadUserProgressFromFirestore(uid) {
 async function pushProgressNow(uid) {
   if (!db || !uid) return;
   try {
-    await db.collection('users').doc(uid).set(
-      {
-        email: currentUser?.email || '',
-        displayName: currentUser?.displayName || '',
-        mastered_vocab_ids: masteredIds,
-        dict_progress: dictProgressStore,
-        grammar_progress: grammarProgressStore,
-        mistakes: mistakes,
-        updated_at: firebase.firestore.FieldValue.serverTimestamp()
-      },
-      { merge: true }
-    );
+    const safeSpeakIdx =
+      typeof speakIdx !== 'undefined' && Number.isInteger(speakIdx) && speakIdx >= 0
+        ? speakIdx
+        : 0;
+
+    const payload = {
+      email: currentUser?.email || '',
+      displayName: currentUser?.displayName || '',
+      mastered_vocab_ids: masteredIds,
+      dict_progress: dictProgressStore,
+      listening_progress: listeningProgressStore,
+      grammar_progress: grammarProgressStore,
+      speaking_progress: safeSpeakIdx,
+      mistakes: mistakes,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (typeof spokenHistory !== 'undefined' && Array.isArray(spokenHistory)) {
+      payload.spoken_history = spokenHistory;
+    }
+    if (typeof grammarDoneMap !== 'undefined' && grammarDoneMap && typeof grammarDoneMap === 'object') {
+      payload.grammar_done_map = grammarDoneMap;
+    }
+
+    await db.collection('users').doc(uid).set(payload, { merge: true });
   } catch (err) {
     console.error('Lỗi lưu dữ liệu lên Firestore:', err);
   }
@@ -152,6 +246,7 @@ function syncProgressToCloud() {
 
 /* ================= GLOBAL STATE & PROGRESS ================= */
 const DICT_PROGRESS_KEY = 'sweden_dict_progress_v1';
+const LISTENING_PROGRESS_KEY = 'sweden_listening_progress_v1';
 const GRAMMAR_PROGRESS_KEY = 'sweden_grammar_progress_v1';
 
 let masteredIds = JSON.parse(localStorage.getItem('mastered_vocab_ids')) || [];
@@ -172,14 +267,20 @@ function loadDictSavedProgress() {
     if (raw && typeof raw === 'object') {
       return {
         lastLessonIdx: Number.isInteger(raw.lastLessonIdx) ? raw.lastLessonIdx : 0,
-        byLessonKey: raw.byLessonKey && typeof raw.byLessonKey === 'object' ? raw.byLessonKey : {}
+        byLessonKey: normalizeLessonProgressMap(raw.byLessonKey)
       };
     }
   } catch (e) {}
   return { lastLessonIdx: 0, byLessonKey: {} };
 }
 
-let dictProgressStore = loadDictSavedProgress();
+function loadListeningSavedProgress() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LISTENING_PROGRESS_KEY));
+    return normalizeListeningProgress(raw);
+  } catch (e) {}
+  return { currentSentenceIdx: 0, maxSentenceIdx: 0 };
+}
 
 function loadGrammarSavedProgress() {
   try {
@@ -194,13 +295,14 @@ function loadGrammarSavedProgress() {
   return { lastTense: 'pres_simple', byTense: {} };
 }
 
+let dictProgressStore = loadDictSavedProgress();
+let listeningProgressStore = loadListeningSavedProgress();
 let grammarProgressStore = loadGrammarSavedProgress();
 
 let currentTense = grammarProgressStore.lastTense || 'pres_simple';
 let filteredGrammar = [];
 let grammarIdx = 0;
 
-let speakIdx = 0;
 let currentSpeak = SPEAKING_DATA[0];
 
 let mistakes = JSON.parse(localStorage.getItem('eng_mistakes')) || [];
@@ -252,7 +354,7 @@ window.onload = function () {
   initVocabQueue();
   initLessonSelect();
   initGrammar();
-  renderSpeaking();
+  initSpeaking();
   renderVerbs(IRREGULAR_VERBS);
   initFirebase();
 };
@@ -273,7 +375,7 @@ function getPoolSource() {
   return pool;
 }
 
-function initVocabQueue() {
+function initVocabQueue(autoSpeak = true) {
   isReviewingMastered = false;
   document.getElementById('vocab-mode-title').innerText = 'Cài đặt bài học từ vựng (Hàng đợi 10 từ xoay vòng)';
   document.getElementById('normal-vocab-filters').style.display = 'grid';
@@ -284,7 +386,7 @@ function initVocabQueue() {
   const pool = getPoolSource().sort(() => 0.5 - Math.random());
   vocabQueue = pool.slice(0, 10);
   queueIdx = 0;
-  renderVocab();
+  renderVocab(autoSpeak);
 }
 
 function startReviewMastered() {
@@ -319,7 +421,7 @@ function setVocabMode(mode) {
   renderVocab();
 }
 
-function renderVocab() {
+function renderVocab(autoSpeak = true) {
   if (vocabQueue.length === 0) {
     document.getElementById('v-prompt').innerText = '🎉 Hoàn thành danh sách!';
     document.getElementById('v-phonetic').innerText = isReviewingMastered
@@ -334,7 +436,8 @@ function renderVocab() {
   document.getElementById('v-badge').innerText = `Bậc ${currentVocab.level} • ${currentVocab.topic.toUpperCase()}`;
   document.getElementById('v-feedback').className = 'feedback-box';
 
-  speakText(currentVocab.en);
+  if(autoSpeak)
+    speakText(currentVocab.en);
 
   if (vocabMode === 'quiz') {
     document.getElementById('v-prompt').innerText = currentVocab.en;
@@ -467,29 +570,19 @@ function toggleStoreMaster(id, filterType) {
   if (!isReviewingMastered) initVocabQueue();
 }
 
-/* --- 2. DICTATION (HỘI THOẠI & CÂU ĐANG HỌC) --- */
+/* --- 2 & 3. DICTATION & LISTENING TRACKING --- */
 function getLessonKey(lesson, idx) {
   return lesson && lesson.id ? String(lesson.id) : `lesson_${idx}`;
 }
 
-function saveCurrentDictPosition() {
-  const lessonIdx = lessons.indexOf(currentLesson);
-  const safeLessonIdx = lessonIdx >= 0 ? lessonIdx : 0;
-  const total = currentLesson && Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
-  const safeSentenceIdx = total > 0 ? Math.min(Math.max(currentDictIdx, 0), total - 1) : 0;
-
-  const key = getLessonKey(currentLesson, safeLessonIdx);
-  const prevEntry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0, maxVisitedIdx: 0 };
-  const nextMaxVisited = Math.max(prevEntry.maxVisitedIdx || 0, safeSentenceIdx);
-
-  dictProgressStore.lastLessonIdx = safeLessonIdx;
-  dictProgressStore.byLessonKey[key] = {
-    sentenceIdx: safeSentenceIdx,
-    maxVisitedIdx: nextMaxVisited
+function saveCurrentListeningSentence() {
+  const safeSentenceIdx = Math.max(currentDictIdx, 0);
+  const prevMax = listeningProgressStore.maxSentenceIdx || 0;
+  listeningProgressStore = {
+    currentSentenceIdx: safeSentenceIdx,
+    maxSentenceIdx: Math.max(prevMax, safeSentenceIdx)
   };
-
-  localStorage.setItem(DICT_PROGRESS_KEY, JSON.stringify(dictProgressStore));
-  renderDictBookmarkBar();
+  localStorage.setItem(LISTENING_PROGRESS_KEY, JSON.stringify(listeningProgressStore));
   syncProgressToCloud();
 }
 
@@ -509,16 +602,59 @@ function renderDictBookmarkBar() {
   }
 }
 
+function saveCurrentDictPosition({ updateActiveBookmark = true } = {}) {
+  const lessonIdx = lessons.indexOf(currentLesson);
+  const safeLessonIdx = lessonIdx >= 0 ? lessonIdx : 0;
+  const total = currentLesson && Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
+  const safeSentenceIdx = total > 0 ? Math.min(Math.max(currentDictIdx, 0), total - 1) : 0;
+
+  const key = getLessonKey(currentLesson, safeLessonIdx);
+  const prevEntry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0, maxVisitedIdx: 0 };
+  const nextMaxVisited = Math.max(prevEntry.maxVisitedIdx || 0, safeSentenceIdx);
+
+  if (updateActiveBookmark) {
+    dictProgressStore.lastLessonIdx = safeLessonIdx;
+  }
+  dictProgressStore.byLessonKey[key] = {
+    sentenceIdx: safeSentenceIdx,
+    maxVisitedIdx: nextMaxVisited
+  };
+
+  localStorage.setItem(DICT_PROGRESS_KEY, JSON.stringify(dictProgressStore));
+  renderDictBookmarkBar();
+  syncProgressToCloud();
+}
+
+function loadSelectedLesson() {
+  const sel = document.getElementById('lesson-select');
+  const idx = sel ? parseInt(sel.value, 10) : 0;
+  const safeIdx = Number.isNaN(idx) ? 0 : Math.min(Math.max(idx, 0), lessons.length - 1);
+
+  currentLesson = lessons[safeIdx];
+  const key = getLessonKey(currentLesson, safeIdx);
+  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0 };
+  const total = currentLesson && Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
+  currentDictIdx = total > 0 ? Math.min(Math.max(entry.sentenceIdx || 0, 0), total - 1) : 0;
+
+  // Chỉ lưu vị trí của bài vừa mở, KHÔNG ghi đè mốc bài đang học chính
+  saveCurrentDictPosition({ updateActiveBookmark: false });
+  updateDictUI();
+}
+
 function resumeSavedDictPosition() {
-  const savedLessonIdx = Math.min(Math.max(dictProgressStore.lastLessonIdx || 0, 0), lessons.length - 1);
+  const maxIdx = Math.max(lessons.length - 1, 0);
+  const savedLessonIdx = Math.min(Math.max(Number(dictProgressStore.lastLessonIdx) || 0, 0), maxIdx);
+  const targetLesson = lessons[savedLessonIdx];
+  if (!targetLesson) return;
+
+  currentLesson = targetLesson;
+  const key = getLessonKey(currentLesson, savedLessonIdx);
+  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0, maxVisitedIdx: 0 };
+  const total = Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
+  currentDictIdx = total > 0 ? Math.min(Math.max(Number(entry.sentenceIdx) || 0, 0), total - 1) : 0;
+
   const sel = document.getElementById('lesson-select');
   if (sel) sel.value = String(savedLessonIdx);
-
-  currentLesson = lessons[savedLessonIdx];
-  const key = getLessonKey(currentLesson, savedLessonIdx);
-  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0 };
-  const total = currentLesson.sentences ? currentLesson.sentences.length : 0;
-  currentDictIdx = total > 0 ? Math.min(Math.max(entry.sentenceIdx || 0, 0), total - 1) : 0;
 
   updateDictUI();
 }
@@ -548,21 +684,6 @@ function initLessonSelect() {
   const total = currentLesson && Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
   currentDictIdx = total > 0 ? Math.min(Math.max(entry.sentenceIdx || 0, 0), total - 1) : 0;
 
-  updateDictUI();
-}
-
-function loadSelectedLesson() {
-  const sel = document.getElementById('lesson-select');
-  const idx = sel ? parseInt(sel.value, 10) : 0;
-  const safeIdx = Number.isNaN(idx) ? 0 : Math.min(Math.max(idx, 0), lessons.length - 1);
-
-  currentLesson = lessons[safeIdx];
-  const key = getLessonKey(currentLesson, safeIdx);
-  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0 };
-  const total = currentLesson && Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
-  currentDictIdx = total > 0 ? Math.min(Math.max(entry.sentenceIdx || 0, 0), total - 1) : 0;
-
-  saveCurrentDictPosition();
   updateDictUI();
 }
 
@@ -633,6 +754,7 @@ function playCurrentAudio(rate) {
   const item = currentLesson.sentences[currentDictIdx];
   if (item) {
     saveCurrentDictPosition();
+    saveCurrentListeningSentence();
     speakText(item.en, rate);
   }
 }
@@ -640,6 +762,7 @@ function playCurrentAudio(rate) {
 function jumpToDict(i) {
   currentDictIdx = i;
   saveCurrentDictPosition();
+  saveCurrentListeningSentence();
   updateDictUI();
   playCurrentAudio(1.0);
 }
@@ -648,6 +771,7 @@ function nextDictSentence() {
   if (currentDictIdx < currentLesson.sentences.length - 1) {
     currentDictIdx++;
     saveCurrentDictPosition();
+    saveCurrentListeningSentence();
     updateDictUI();
     playCurrentAudio(1.0);
   }
@@ -657,6 +781,7 @@ function prevDictSentence() {
   if (currentDictIdx > 0) {
     currentDictIdx--;
     saveCurrentDictPosition();
+    saveCurrentListeningSentence();
     updateDictUI();
     playCurrentAudio(1.0);
   }
@@ -675,6 +800,14 @@ function handleDictKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     checkDictation();
+  }
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    prevDictSentence();
+  }
+  if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    nextDictSentence();
   }
 }
 
@@ -698,59 +831,94 @@ function checkDictation() {
   res.innerHTML = `<div>${html}</div><div style="margin-top:6px; font-size:13px; color:var(--muted)">🇻🇳 ${item.vi}</div>`;
 }
 
-/* --- 3. GRAMMAR (LƯU CÂU ĐANG HỌC THEO TỪNG THÌ) --- */
+/* --- 4. GRAMMAR (LƯU CÂU ĐANG HỌC THEO TỪNG THÌ) --- */
+const GRAMMAR_DONE_KEY = 'sweden_grammar_done_v1';
+let grammarDoneMap = JSON.parse(localStorage.getItem(GRAMMAR_DONE_KEY)) || {};
+let shuffledGrammarByTense = {};
+
+function shuffleArray(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function toRoman(num) {
+  const romans = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+    [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+    [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
+  ];
+  let n = Math.max(1, num);
+  let res = '';
+  for (const [val, sym] of romans) {
+    while (n >= val) {
+      res += sym;
+      n -= val;
+    }
+  }
+  return res;
+}
+
+function getGrammarQuestionKey(tenseId, qObj, fallbackIdx) {
+  if (qObj && qObj.id !== undefined) return `${tenseId}_${qObj.id}`;
+  return `${tenseId}__${qObj ? qObj.q : fallbackIdx}`;
+}
+
+function updateGrammarDoneCount() {
+  const el = document.getElementById('g-done-count');
+  if (el) el.innerText = String(Object.keys(grammarDoneMap).length);
+}
+
+function saveGrammarDoneMap() {
+  localStorage.setItem(GRAMMAR_DONE_KEY, JSON.stringify(grammarDoneMap));
+  updateGrammarDoneCount();
+  const panel = document.getElementById('grammar-review-panel');
+  if (panel && panel.style.display !== 'none') {
+    renderGrammarReview();
+  }
+  if (typeof syncProgressToCloud === 'function') {
+    syncProgressToCloud();
+  }
+}
+
+function recordGrammarAttempt(qObj, chosenIdx) {
+  const tenseIdx = Array.isArray(TENSES) ? TENSES.findIndex((t) => t.id === currentTense) : -1;
+  const tenseObj = tenseIdx >= 0 ? TENSES[tenseIdx] : { id: currentTense, name: currentTense };
+  const qKey = getGrammarQuestionKey(currentTense, qObj, grammarIdx);
+
+  grammarDoneMap[qKey] = {
+    key: qKey,
+    tenseId: currentTense,
+    tenseName: tenseObj.name,
+    tenseOrder: tenseIdx >= 0 ? tenseIdx : 999,
+    q: qObj.q,
+    opts: Array.isArray(qObj.opts) ? [...qObj.opts] : [],
+    ans: qObj.ans,
+    lastChosenIdx: chosenIdx,
+    whyRight: qObj.whyRight || '',
+    whyWrong: qObj.whyWrong || '',
+    updatedAt: Date.now()
+  };
+
+  saveGrammarDoneMap();
+}
+
 function saveGrammarProgress() {
   grammarProgressStore.lastTense = currentTense;
   grammarProgressStore.byTense[currentTense] = grammarIdx;
   localStorage.setItem(GRAMMAR_PROGRESS_KEY, JSON.stringify(grammarProgressStore));
-  syncProgressToCloud();
-}
-
-function initGrammar() {
-  currentTense = grammarProgressStore.lastTense || currentTense;
-  const coreEl = document.getElementById('core-tenses');
-  const otherEl = document.getElementById('other-tenses');
-  if (coreEl) {
-    coreEl.innerHTML = TENSES.filter((t) => t.core)
-      .map(
-        (t) =>
-          `<span class="tense-pill core ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (300)</span>`
-      )
-      .join('');
+  if (typeof syncProgressToCloud === 'function') {
+    syncProgressToCloud();
   }
-  if (otherEl) {
-    otherEl.innerHTML = TENSES.filter((t) => !t.core)
-      .map(
-        (t) =>
-          `<span class="tense-pill ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (100)</span>`
-      )
-      .join('');
-  }
-  selectTense(currentTense);
-}
-
-function selectTense(tId) {
-  currentTense = tId;
-  initGrammarUIOnly();
-  const tObj = TENSES.find((t) => t.id === tId);
-  if (tObj) {
-    document.getElementById('g-tense-name').innerText = tObj.name;
-    document.getElementById('g-target-badge').innerText = `Bộ ${tObj.target} câu`;
-    document.getElementById('g-formula').innerText = tObj.formula;
-  }
-
-  filteredGrammar = GRAMMAR_QUESTIONS.filter((q) => q.tense === tId);
-  if (filteredGrammar.length === 0) filteredGrammar = GRAMMAR_QUESTIONS;
-  const savedIdx = grammarProgressStore.byTense[tId];
-  grammarIdx = Number.isInteger(savedIdx) && savedIdx >= 0 ? savedIdx : 0;
-  saveGrammarProgress();
-  renderGrammarQ();
 }
 
 function initGrammarUIOnly() {
   const coreEl = document.getElementById('core-tenses');
   const otherEl = document.getElementById('other-tenses');
-  if (coreEl) {
+  if (coreEl && Array.isArray(TENSES)) {
     coreEl.innerHTML = TENSES.filter((t) => t.core)
       .map(
         (t) =>
@@ -758,7 +926,7 @@ function initGrammarUIOnly() {
       )
       .join('');
   }
-  if (otherEl) {
+  if (otherEl && Array.isArray(TENSES)) {
     otherEl.innerHTML = TENSES.filter((t) => !t.core)
       .map(
         (t) =>
@@ -768,7 +936,61 @@ function initGrammarUIOnly() {
   }
 }
 
+function initGrammar() {
+  currentTense = grammarProgressStore.lastTense || currentTense;
+  const coreEl = document.getElementById('core-tenses');
+  const otherEl = document.getElementById('other-tenses');
+  if (coreEl && Array.isArray(TENSES)) {
+    coreEl.innerHTML = TENSES.filter((t) => t.core)
+      .map(
+        (t) =>
+          `<span class="tense-pill core ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (300)</span>`
+      )
+      .join('');
+  }
+  if (otherEl && Array.isArray(TENSES)) {
+    otherEl.innerHTML = TENSES.filter((t) => !t.core)
+      .map(
+        (t) =>
+          `<span class="tense-pill ${t.id === currentTense ? 'active' : ''}" onclick="selectTense('${t.id}')">${t.name} (100)</span>`
+      )
+      .join('');
+  }
+  updateGrammarDoneCount();
+  selectTense(currentTense);
+}
+
+function selectTense(tId) {
+  currentTense = tId;
+  initGrammarUIOnly();
+  const tObj = Array.isArray(TENSES) ? TENSES.find((t) => t.id === tId) : null;
+  if (tObj) {
+    const nameEl = document.getElementById('g-tense-name');
+    const badgeEl = document.getElementById('g-target-badge');
+    const formulaEl = document.getElementById('g-formula');
+    if (nameEl) nameEl.innerText = tObj.name;
+    if (badgeEl) badgeEl.innerText = `Bộ ${tObj.target} câu`;
+    if (formulaEl) formulaEl.innerText = tObj.formula;
+  }
+
+  const baseList = Array.isArray(GRAMMAR_QUESTIONS)
+    ? GRAMMAR_QUESTIONS.filter((q) => q.tense === tId)
+    : [];
+  const sourceList = baseList.length > 0 ? baseList : (GRAMMAR_QUESTIONS || []);
+
+  // Xáo trộn lại mỗi lần chọn thì để câu hỏi không theo thứ tự cố định
+  shuffledGrammarByTense[tId] = shuffleArray(sourceList);
+  filteredGrammar = shuffledGrammarByTense[tId];
+
+  const savedIdx = grammarProgressStore.byTense ? grammarProgressStore.byTense[tId] : 0;
+  grammarIdx = Number.isInteger(savedIdx) && savedIdx >= 0 ? savedIdx : 0;
+
+  saveGrammarProgress();
+  renderGrammarQ();
+}
+
 function renderGrammarQ() {
+  if (!Array.isArray(filteredGrammar) || filteredGrammar.length === 0) return;
   const qObj = filteredGrammar[grammarIdx % filteredGrammar.length];
   document.getElementById('g-question').innerText = `Câu ${(grammarIdx % filteredGrammar.length) + 1}: ${qObj.q}`;
   document.getElementById('g-feedback').className = 'feedback-box';
@@ -776,14 +998,18 @@ function renderGrammarQ() {
   document.getElementById('g-options').innerHTML = qObj.opts
     .map(
       (opt, idx) =>
-        `<button class="option-btn" onclick="checkGrammar(this, ${idx === qObj.ans}, '${opt}')"><b>${letters[idx]}.</b> ${opt}</button>`
+        `<button class="option-btn" onclick="checkGrammar(this, ${idx === qObj.ans}, ${idx})"><b>${letters[idx]}.</b> ${opt}</button>`
     )
     .join('');
 }
 
-function checkGrammar(btn, isCorrect, chosenOpt) {
+function checkGrammar(btn, isCorrect, chosenIdx) {
   const qObj = filteredGrammar[grammarIdx % filteredGrammar.length];
+  const chosenOpt = qObj.opts[chosenIdx];
   const fb = document.getElementById('g-feedback');
+
+  recordGrammarAttempt(qObj, chosenIdx);
+
   if (isCorrect) {
     btn.classList.add('correct');
     fb.className = 'feedback-box show fb-ok';
@@ -802,37 +1028,433 @@ function nextGrammar() {
   renderGrammarQ();
 }
 
-/* --- 4. SPEAKING --- */
+function toggleGrammarReview(forceState) {
+  const panel = document.getElementById('grammar-review-panel');
+  if (!panel) return;
+  const nextShow = typeof forceState === 'boolean' ? forceState : panel.style.display === 'none';
+  panel.style.display = nextShow ? 'block' : 'none';
+  if (nextShow) {
+    renderGrammarReview();
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function clearGrammarHistory() {
+  grammarDoneMap = {};
+  saveGrammarDoneMap();
+}
+
+function onReviewCheckboxChange(encodedKey, optIdx, checkboxEl) {
+  const qKey = decodeURIComponent(encodedKey);
+  const item = grammarDoneMap[qKey];
+  if (!item) return;
+
+  const cardEl = document.getElementById(`g-rev-card-${CSS.escape(qKey)}`);
+  const fbEl = document.getElementById(`g-rev-fb-${CSS.escape(qKey)}`);
+  if (!cardEl || !fbEl) return;
+
+  const allBoxes = cardEl.querySelectorAll('input[type="checkbox"]');
+  allBoxes.forEach((box, idx) => {
+    if (idx !== optIdx) box.checked = false;
+  });
+
+  const optLabels = cardEl.querySelectorAll('.g-check-option');
+  optLabels.forEach((lbl) => lbl.classList.remove('is-right', 'is-wrong'));
+
+  if (!checkboxEl.checked) {
+    fbEl.className = 'g-review-feedback';
+    fbEl.innerHTML = '';
+    return;
+  }
+
+  const letters = ['A', 'B', 'C', 'D'];
+  const isRight = optIdx === item.ans;
+
+  item.lastChosenIdx = optIdx;
+  localStorage.setItem(GRAMMAR_DONE_KEY, JSON.stringify(grammarDoneMap));
+  if (typeof syncProgressToCloud === 'function') {
+    syncProgressToCloud();
+  }
+
+  if (isRight) {
+    optLabels[optIdx].classList.add('is-right');
+    fbEl.className = 'g-review-feedback show ok';
+    fbEl.innerHTML = `✅ <b>Đúng!</b> Bạn chọn <b>${letters[optIdx]}. ${item.opts[optIdx]}</b>.${item.whyRight ? `<br/>${item.whyRight}` : ''}`;
+  } else {
+    optLabels[optIdx].classList.add('is-wrong');
+    if (optLabels[item.ans]) optLabels[item.ans].classList.add('is-right');
+    fbEl.className = 'g-review-feedback show err';
+    fbEl.innerHTML = `❌ <b>Sai!</b> Bạn chọn <b>${letters[optIdx]}. ${item.opts[optIdx]}</b> — Đáp án đúng là <b>${letters[item.ans]}. ${item.opts[item.ans]}</b>.${item.whyWrong ? `<br/><b>Lỗi sai:</b> ${item.whyWrong}` : ''}${item.whyRight ? `<br/><b>Giải thích:</b> ${item.whyRight}` : ''}`;
+  }
+}
+
+function renderGrammarReview() {
+  const container = document.getElementById('grammar-review-content');
+  if (!container) return;
+  updateGrammarDoneCount();
+
+  const items = Object.values(grammarDoneMap);
+  if (!items.length) {
+    container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--muted);">Bạn chưa làm câu ngữ pháp nào. Hãy chọn đáp án ở bài tập phía trên để lưu vào danh sách ôn tập nhé!</div>`;
+    return;
+  }
+
+  const grouped = {};
+  items.forEach((it) => {
+    const tId = it.tenseId || 'other';
+    if (!grouped[tId]) {
+      grouped[tId] = {
+        tenseId: tId,
+        tenseName: it.tenseName || tId,
+        tenseOrder: Number.isFinite(it.tenseOrder) ? it.tenseOrder : 999,
+        questions: []
+      };
+    }
+    grouped[tId].questions.push(it);
+  });
+
+  const sortedGroups = Object.values(grouped).sort((a, b) => a.tenseOrder - b.tenseOrder);
+  const letters = ['A', 'B', 'C', 'D'];
+
+  container.innerHTML = sortedGroups
+    .map((grp, gIdx) => {
+      const roman = toRoman(gIdx + 1);
+      const qHtml = grp.questions
+        .map((qItem, qIdx) => {
+          const encodedKey = encodeURIComponent(qItem.key);
+          const optsHtml = (qItem.opts || [])
+            .map((optText, oIdx) => {
+              const isChecked = qItem.lastChosenIdx === oIdx;
+              let stateClass = '';
+              if (isChecked) {
+                stateClass = oIdx === qItem.ans ? 'is-right' : 'is-wrong';
+              }
+              return `
+                <label class="g-check-option ${stateClass}">
+                  <input
+                    type="checkbox"
+                    ${isChecked ? 'checked' : ''}
+                    onchange="onReviewCheckboxChange('${encodedKey}', ${oIdx}, this)"
+                  />
+                  <span><b>${letters[oIdx]}.</b> ${optText}</span>
+                </label>
+              `;
+            })
+            .join('');
+
+          let initialFbClass = 'g-review-feedback';
+          let initialFbHtml = '';
+          if (Number.isInteger(qItem.lastChosenIdx) && qItem.lastChosenIdx >= 0) {
+            const ok = qItem.lastChosenIdx === qItem.ans;
+            initialFbClass = `g-review-feedback show ${ok ? 'ok' : 'err'}`;
+            initialFbHtml = ok
+              ? `✅ <b>Đúng!</b> Lần chọn gần nhất: <b>${letters[qItem.lastChosenIdx]}. ${qItem.opts[qItem.lastChosenIdx]}</b>.`
+              : `❌ <b>Sai!</b> Lần chọn gần nhất: <b>${letters[qItem.lastChosenIdx]}. ${qItem.opts[qItem.lastChosenIdx]}</b> — Đúng là <b>${letters[qItem.ans]}. ${qItem.opts[qItem.ans]}</b>.`;
+          }
+
+          return `
+            <div class="g-review-card" id="g-rev-card-${qItem.key}">
+              <div class="g-review-q">Câu ${qIdx + 1}: ${qItem.q}</div>
+              <div class="g-review-opts">${optsHtml}</div>
+              <div class="${initialFbClass}" id="g-rev-fb-${qItem.key}">${initialFbHtml}</div>
+            </div>
+          `;
+        })
+        .join('');
+
+      return `
+        <div class="g-tense-group">
+          <div class="g-tense-group-title">${roman}. ${grp.tenseName} (${grp.questions.length} câu đã làm)</div>
+          ${qHtml}
+        </div>
+      `;
+    })
+    .join('');
+}
+
+/* --- 5. SPEAKING & PRONUNCIATION SCORING (>= 80 TO ADVANCE) --- */
+const SPOKEN_HISTORY_KEY = 'sweden_spoken_history_v1';
+const SPEAKING_IDX_KEY = 'sweden_speaking_idx_v1';
+const PASS_SCORE_THRESHOLD = 80;
+
+let speakIdx = parseInt(localStorage.getItem(SPEAKING_IDX_KEY), 10) || 0;
+if (!Number.isInteger(speakIdx) || speakIdx < 0) speakIdx = 0;
+
+let spokenHistory = JSON.parse(localStorage.getItem(SPOKEN_HISTORY_KEY)) || [];
+let lastSpeakingScore = 0;
+let canAdvanceSpeaking = false;
+let mainSpeakingScore = 0;
+let mainCanAdvanceSpeaking = false;
+let activePracticeTarget = null;
+let pendingPassedRecord = null;
+let isRepracticingFromHistory = false;
+let repracticeRecordId = null;
+
+function initSpeaking() {
+  const savedIdx = parseInt(localStorage.getItem(SPEAKING_IDX_KEY), 10);
+  speakIdx = Number.isInteger(savedIdx) && savedIdx >= 0 ? savedIdx : 0;
+  renderSpeaking();
+}
+
 function setText(id, val) {
   const el = document.getElementById(id);
   if (el && val !== undefined) el.innerText = val;
 }
 
+function normalizePronText(str) {
+  return String(str || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9'\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function levenshteinDistance(a, b) {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return dp[m][n];
+}
+
+function scorePronunciation(targetEn, saidText) {
+  const normTarget = normalizePronText(targetEn);
+  const normSaid = normalizePronText(saidText);
+
+  if (!normTarget || !normSaid) {
+    return { score: 0, passed: false, matchedWords: [], missingWords: normTarget ? normTarget.split(' ') : [] };
+  }
+
+  const targetWords = normTarget.split(' ');
+  const saidWords = normSaid.split(' ');
+  const saidSet = new Set(saidWords);
+
+  const matchedWords = targetWords.filter((w) => saidSet.has(w));
+  const missingWords = targetWords.filter((w) => !saidSet.has(w));
+  const wordRatio = matchedWords.length / targetWords.length;
+
+  const dist = levenshteinDistance(normTarget, normSaid);
+  const maxLen = Math.max(normTarget.length, normSaid.length);
+  const charRatio = maxLen > 0 ? Math.max(0, 1 - dist / maxLen) : 0;
+
+  const rawScore = Math.round((wordRatio * 0.65 + charRatio * 0.35) * 100);
+  const score = Math.max(0, Math.min(100, rawScore));
+
+  return {
+    score,
+    passed: score >= PASS_SCORE_THRESHOLD,
+    matchedWords,
+    missingWords
+  };
+}
+
+function updateNextSpeakingButtonUI() {
+  const btn = document.getElementById('next-speaking-btn');
+  if (!btn) return;
+  if (canAdvanceSpeaking) {
+    btn.classList.remove('btn-locked');
+    btn.innerText = `Mẫu câu tiếp theo ➔ (Đã đạt ${lastSpeakingScore}/100)`;
+  } else {
+    btn.classList.add('btn-locked');
+    btn.innerText = `🔒 Mẫu câu tiếp theo (Cần ≥ ${PASS_SCORE_THRESHOLD}/100 điểm)`;
+  }
+}
+
 function renderSpeaking() {
   if (!Array.isArray(SPEAKING_DATA) || SPEAKING_DATA.length === 0) return;
   currentSpeak = SPEAKING_DATA[speakIdx % SPEAKING_DATA.length];
+  lastSpeakingScore = 0;
+  canAdvanceSpeaking = false;
+  mainSpeakingScore = 0;
+  mainCanAdvanceSpeaking = false;
+  activePracticeTarget = null;
+  pendingPassedRecord = null;
+  isRepracticingFromHistory = false;
+  repracticeRecordId = null;
 
   setText('sp-topic', currentSpeak.topic);
   setText('sp-sentence', `"${currentSpeak.en}"`);
   setText('sp-meaning', currentSpeak.vi);
-  setText('sp-roleplay-q', currentSpeak.rq);
-  setText('sp-roleplay-a', currentSpeak.ra);
-
-  const ansEl = document.getElementById('sp-roleplay-a');
-  if (ansEl) ansEl.style.display = 'none';
 
   const resEl = document.getElementById('sp-result');
-  if (resEl) resEl.className = 'feedback-box';
+  if (resEl) {
+    resEl.className = 'feedback-box';
+    resEl.innerHTML = '';
+  }
+
+  updateNextSpeakingButtonUI();
+  renderSpokenHistory();
 }
 
 function nextSpeaking() {
+  if (!mainCanAdvanceSpeaking) {
+    const fb = document.getElementById('sp-result');
+    if (fb) {
+      fb.className = 'feedback-box show fb-err';
+      fb.innerHTML = `⛔ Bạn mới đạt <b>${mainSpeakingScore}/100</b> điểm cho câu hiện tại. Hãy bấm <b>🎙️ Bấm để nói</b> đọc câu này đạt tối thiểu <b>${PASS_SCORE_THRESHOLD}/100</b> điểm mới được qua câu tiếp theo!`;
+    }
+    return;
+  }
+
+  if (pendingPassedRecord) {
+    addSpokenRecord(
+      pendingPassedRecord.said,
+      pendingPassedRecord.evalResult,
+      pendingPassedRecord.targetObj
+    );
+  }
+  pendingPassedRecord = null;
+
   speakIdx++;
+  localStorage.setItem(SPEAKING_IDX_KEY, String(speakIdx));
+  if (typeof syncProgressToCloud === 'function') {
+    syncProgressToCloud();
+  }
   renderSpeaking();
+}
+
+function saveSpokenHistory() {
+  localStorage.setItem(SPOKEN_HISTORY_KEY, JSON.stringify(spokenHistory));
+  renderSpokenHistory();
+  if (typeof syncProgressToCloud === 'function') {
+    syncProgressToCloud();
+  }
+}
+
+function addSpokenRecord(saidText, evalResult, targetObj) {
+  const cleanSaid = String(saidText || '').trim();
+  if (!cleanSaid) return;
+
+  const targetEn = targetObj && targetObj.en ? targetObj.en : (currentSpeak ? currentSpeak.en : '');
+  const targetVi = targetObj && targetObj.vi ? targetObj.vi : (currentSpeak ? currentSpeak.vi : '');
+  const topic = targetObj && targetObj.topic ? targetObj.topic : (currentSpeak ? currentSpeak.topic : '');
+  const timeNow = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  const normTarget = normalizePronText(targetEn);
+
+  const existingIdx = normTarget
+    ? spokenHistory.findIndex((r) => normalizePronText(r.targetEn) === normTarget)
+    : -1;
+
+  if (existingIdx !== -1) {
+    spokenHistory[existingIdx] = {
+      ...spokenHistory[existingIdx],
+      said: cleanSaid,
+      score: evalResult.score,
+      passed: evalResult.passed,
+      time: timeNow
+    };
+    saveSpokenHistory();
+    return;
+  }
+
+  const record = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    said: cleanSaid,
+    score: evalResult.score,
+    passed: evalResult.passed,
+    targetEn,
+    targetVi,
+    topic,
+    time: timeNow
+  };
+
+  spokenHistory.unshift(record);
+  spokenHistory = spokenHistory.slice(0, 60);
+  saveSpokenHistory();
+}
+
+function replaySpokenText(text, rate = 0.95, event) {
+  if (event) event.stopPropagation();
+  if (!text) return;
+  speakText(text, rate);
+}
+
+function practiceFromHistory(recordId) {
+  const item = spokenHistory.find((r) => r.id === recordId);
+  if (!item || !item.targetEn) return;
+
+  isRepracticingFromHistory = true;
+  repracticeRecordId = recordId;
+  activePracticeTarget = {
+    en: item.targetEn,
+    vi: item.targetVi || '',
+    topic: item.topic || 'Ôn từ lịch sử'
+  };
+
+  setText('sp-topic', `Đọc lại: ${activePracticeTarget.topic}`);
+  setText('sp-sentence', `"${activePracticeTarget.en}"`);
+  setText('sp-meaning', activePracticeTarget.vi || '(Đọc lại câu mẫu này để chấm điểm)');
+  startSpeechRecognition();
+}
+
+function clearSpokenHistory() {
+  spokenHistory = [];
+  saveSpokenHistory();
+}
+
+function renderSpokenHistory() {
+  const listEl = document.getElementById('spoken-history-list');
+  const countEl = document.getElementById('spoken-history-count');
+  if (!listEl) return;
+
+  if (countEl) countEl.innerText = String(spokenHistory.length);
+
+  if (!spokenHistory.length) {
+    listEl.innerHTML = `<div class="spoken-empty">Chưa có câu nào được ghi nhận. Bấm "🎙️ Bấm để nói" để bắt đầu nhé!</div>`;
+    return;
+  }
+
+  listEl.innerHTML = spokenHistory
+    .map((item) => {
+      const passed = Number(item.score) >= PASS_SCORE_THRESHOLD;
+      const badgeClass = passed ? 'spoken-score-pass' : 'spoken-score-fail';
+      const statusText = passed ? `✅ Đạt (${item.score}/100)` : `❌ Chưa đạt (${item.score}/100)`;
+      const escapedSaid = String(item.said || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      const escapedTarget = String(item.targetEn || item.said || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+      return `
+        <div class="spoken-history-item">
+          <div class="spoken-history-main">
+            <div class="spoken-score-row">
+              <span class="spoken-score-badge ${badgeClass}">${statusText}</span>
+              <span style="font-size:11px; color:var(--muted);">${item.time || ''}</span>
+            </div>
+            <div class="spoken-said-text">Bạn đọc: "${item.said}"</div>
+            <div class="spoken-target-sub">
+              ${item.targetEn ? `Mẫu chuẩn: <b>${item.targetEn}</b>` : ''}${item.targetVi ? ` • ${item.targetVi}` : ''}
+            </div>
+          </div>
+          <div class="spoken-history-actions">
+            <button type="button" class="btn btn-sm btn-secondary" onclick="replaySpokenText('${escapedTarget}', 0.9, event)">🔊 Nghe mẫu</button>
+            <button type="button" class="btn btn-sm btn-primary" onclick="replaySpokenText('${escapedSaid}', 0.95, event)">🗣️ Nghe câu đọc</button>
+            <button type="button" class="btn btn-sm btn-warning" onclick="practiceFromHistory('${item.id}')">🎙️ Đọc chấm lại</button>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
 }
 
 function startSpeechRecognition() {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) return alert('Trình duyệt chưa hỗ trợ nhận diện giọng nói. Hãy dùng Google Chrome!');
+
+  const targetObj = activePracticeTarget || currentSpeak;
+  const targetEn = targetObj ? targetObj.en : '';
+
   const rec = new SpeechRec();
   rec.lang = 'en-US';
   const micBtn = document.getElementById('mic-btn');
@@ -841,10 +1463,74 @@ function startSpeechRecognition() {
 
   rec.onresult = (e) => {
     const said = e.results[0][0].transcript;
+    const evalResult = scorePronunciation(targetEn, said);
+
+    lastSpeakingScore = evalResult.score;
+    canAdvanceSpeaking = evalResult.passed;
+    updateNextSpeakingButtonUI();
+
+    const wasRepracticing = isRepracticingFromHistory;
+
+    if (wasRepracticing) {
+      if (evalResult.passed && repracticeRecordId) {
+        const idx = spokenHistory.findIndex((r) => r.id === repracticeRecordId);
+        if (idx !== -1) {
+          spokenHistory[idx] = {
+            ...spokenHistory[idx],
+            said,
+            score: evalResult.score,
+            passed: true,
+            time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+          };
+          saveSpokenHistory();
+        }
+      }
+      // Giữ nguyên trạng thái qua câu của câu chính đang học (vd: câu thứ 3)
+      lastSpeakingScore = mainSpeakingScore;
+      canAdvanceSpeaking = mainCanAdvanceSpeaking;
+      updateNextSpeakingButtonUI();
+    } else {
+      mainSpeakingScore = evalResult.score;
+      mainCanAdvanceSpeaking = evalResult.passed;
+      lastSpeakingScore = evalResult.score;
+      canAdvanceSpeaking = evalResult.passed;
+      updateNextSpeakingButtonUI();
+
+      if (evalResult.passed) {
+        pendingPassedRecord = {
+          said,
+          evalResult,
+          targetObj
+        };
+      } else {
+        pendingPassedRecord = null;
+      }
+    }
+
+    activePracticeTarget = null;
+    isRepracticingFromHistory = false;
+    repracticeRecordId = null;
+
     const fb = document.getElementById('sp-result');
-    fb.className = 'feedback-box show fb-ok';
-    fb.innerHTML = `🗣️ Bạn đọc: <b>"${said}"</b>`;
+    fb.className = evalResult.passed ? 'feedback-box show fb-ok' : 'feedback-box show fb-err';
+
+    const missingHint = evalResult.missingWords.length
+      ? `<div style="margin-top:6px; font-size:12.5px;">Từ cần đọc rõ hơn: <b>${evalResult.missingWords.join(', ')}</b></div>`
+      : '';
+
+    const nextHint = evalResult.passed
+      ? `<div style="margin-top:6px; font-size:12.5px;">🎉 Đạt chuẩn ≥ ${PASS_SCORE_THRESHOLD}/100! Bấm <b>Mẫu câu tiếp theo</b> để lưu vào lịch sử và qua câu mới.</div>`
+      : `<div style="margin-top:6px; font-size:12.5px;">⚠️ Cần đạt ít nhất <b>${PASS_SCORE_THRESHOLD}/100</b> điểm để qua câu tiếp theo. Hãy thử đọc lại nhé!</div>`;
+
+    fb.innerHTML = `
+      <div><b>Điểm phát âm: ${evalResult.score}/100</b> ${evalResult.passed ? '✅ ĐẠT' : '❌ CHƯA ĐẠT'}</div>
+      <div style="margin-top:4px;">🗣️ Bạn đọc: <b>"${said}"</b></div>
+      <div style="margin-top:2px; font-size:12.5px;">🎯 Mẫu chuẩn: <i>"${targetEn}"</i></div>
+      ${missingHint}
+      ${nextHint}
+    `;
   };
+
   rec.onerror = () => alert('Không nghe rõ, thử lại gần mic hơn.');
   rec.onend = () => {
     micBtn.classList.remove('mic-pulse');
@@ -853,7 +1539,7 @@ function startSpeechRecognition() {
   rec.start();
 }
 
-/* --- 5. VERBS --- */
+/* --- 6. VERBS --- */
 function renderVerbs(list) {
   const tbody = document.getElementById('verb-table-body');
   if (tbody) {
@@ -876,7 +1562,7 @@ function filterVerbs() {
   );
 }
 
-/* --- 6. NOTEBOOK --- */
+/* --- 7. NOTEBOOK --- */
 function addMistake(text) {
   if (!mistakes.includes(text)) {
     mistakes.unshift(text);
@@ -916,11 +1602,26 @@ function renderNotebook() {
   }
 }
 
-function speakText(text, rate = 1.0) {
-  if (!('speechSynthesis' in window)) return;
+let speakCallCount = 0;
+
+function speakText(text, rate = 0.95) {
+  if (!text || !('speechSynthesis' in window)) return;
+
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US';
-  u.rate = rate;
-  window.speechSynthesis.speak(u);
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = rate;
+
+  const voices = window.speechSynthesis.getVoices() || [];
+  const preferredVoice =
+    voices.find((v) => /samantha/i.test(v.name) && /^en/i.test(v.lang)) ||
+    voices.find((v) => /^en-US/i.test(v.lang) && !/compact/i.test(v.name)) ||
+    voices.find((v) => /^en-US/i.test(v.lang)) ||
+    voices.find((v) => /^en/i.test(v.lang));
+
+  if (preferredVoice) {
+    utter.voice = preferredVoice;
+  }
+
+  window.speechSynthesis.speak(utter);
 }
