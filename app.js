@@ -89,7 +89,7 @@ function getPoolSource() {
 
 function initVocabQueue() {
   isReviewingMastered = false;
-  document.getElementById('vocab-mode-title').innerText = 'Cài đặt bài học từ vựng (Hàng đợi 10 từ xoay vòng)';
+  document.getElementById('vocab-mode-title').innerText = 'Cài đặt bài học từ vựng';
   document.getElementById('normal-vocab-filters').style.display = 'grid';
   document.getElementById('vocab-mode-switcher').style.display = 'grid';
   document.getElementById('exit-review-btn').style.display = 'none';

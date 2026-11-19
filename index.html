@@ -23,7 +23,6 @@
         <h1>English For Work &amp; Life</h1>
         <span class="badge-sweden">Nail • Lash • Spa</span>
       </div>
-      <p class="header-subtitle">Lộ trình 6 bậc • Chuẩn bị cho cuộc sống &amp; công việc tại Thụy Điển</p>
     </div>
   </div>
 </header>
@@ -34,7 +33,6 @@
   <div class="drawer-header">
     <div>
       <div class="drawer-kicker">MENU HỌC TẬP</div>
-      <div class="drawer-title">Danh mục</div>
     </div>
     <button type="button" class="close-menu-btn" aria-label="Đóng menu" onclick="closeMenu()">✕</button>
   </div>
@@ -83,7 +81,7 @@
   <div id="tab-vocab" class="tab-content active">
     <div class="card">
       <div class="card-title">
-        <span id="vocab-mode-title">Cài đặt bài học từ vựng (Hàng đợi 10 từ xoay vòng)</span>
+        <span id="vocab-mode-title">Cài đặt bài học từ vựng</span>
         <span class="tag" id="vocab-counter">0/10</span>
       </div>
       <div id="normal-vocab-filters" class="grid-2">
@@ -97,7 +95,7 @@
           <option value="6">Bậc 6 (C2 - Thành thạo)</option>
         </select>
         <select id="vocab-topic" onchange="initVocabQueue()">
-          <option value="all">Tất cả chủ đề</option>
+          <option value="all">❖ Tất cả chủ đề</option>
           <option value="nail">💅 Chuyên ngành Nail</option>
           <option value="lash">👁️ Nối mi (Eyelash)</option>
           <option value="spa">💆‍♀️ Spa &amp; Chăm sóc da</option>
@@ -107,7 +105,7 @@
       </div>
       <div id="vocab-mode-switcher" class="grid-2">
         <button type="button" class="btn btn-primary" id="mode-quiz-btn" onclick="setVocabMode('quiz')">Trắc nghiệm A-B-C-D</button>
-        <button type="button" class="btn btn-secondary" id="mode-type-btn" onclick="setVocabMode('type')">Nhìn Việt gõ Anh</button>
+        <button type="button" class="btn btn-secondary" id="mode-type-btn" onclick="setVocabMode('type')">Nhìn tiếng Việt gõ tiếng Anh</button>
       </div>
       <button type="button" id="exit-review-btn" class="btn btn-danger btn-block" style="display:none; margin-top:8px;" onclick="exitReviewMode()">❌ Thoát chế độ ôn tập đã thuộc (Trở về học mới)</button>
     </div>
@@ -136,7 +134,7 @@
       <div id="v-feedback" class="feedback-box"></div>
 
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="button" class="btn btn-secondary btn-block" onclick="nextVocabQueue()">Từ tiếp theo trong hàng đợi ➔</button>
+        <button type="button" class="btn btn-secondary btn-block" onclick="nextVocabQueue()">Từ tiếp theo ➔</button>
       </div>
     </div>
   </div>
@@ -167,10 +165,6 @@
   <!-- ==================== 2. LUYỆN NGHE CHÉP CHÍNH TẢ (300+ CÂU) ==================== -->
   <div id="tab-dictation" class="tab-content">
     <div class="card">
-      <div class="card-title">
-        <span>Chọn chủ đề luyện nghe chép chính tả (Bao la chủ đề)</span>
-        <button type="button" class="btn btn-sm btn-success" onclick="toggleAddLessonForm()">+ Thêm bài mới</button>
-      </div>
       <select id="lesson-select" onchange="loadSelectedLesson()"></select>
 
       <div id="add-lesson-form" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
