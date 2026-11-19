@@ -21,8 +21,18 @@
     <div class="header-brand">
       <div class="header-title-row">
         <h1>English For Work &amp; Life</h1>
-        <span class="badge-sweden">Nail • Lash • Spa</span>
       </div>
+      <p class="header-subtitle">Lộ trình 6 bậc • Chuẩn bị cho cuộc sống &amp; công việc tại Thụy Điển</p>
+    </div>
+
+    <div class="auth-box" id="auth-box">
+      <span class="auth-status" id="auth-status">Chưa đăng nhập</span>
+      <button type="button" class="btn btn-sm btn-warning" id="google-login-btn" onclick="signInWithGoogle()">
+        🔐 Đăng nhập Google
+      </button>
+      <button type="button" class="btn btn-sm btn-secondary" id="google-logout-btn" style="display:none;" onclick="signOutGoogle()">
+        Đăng xuất
+      </button>
     </div>
   </div>
 </header>
@@ -33,6 +43,7 @@
   <div class="drawer-header">
     <div>
       <div class="drawer-kicker">MENU HỌC TẬP</div>
+      <div class="drawer-title">Danh mục</div>
     </div>
     <button type="button" class="close-menu-btn" aria-label="Đóng menu" onclick="closeMenu()">✕</button>
   </div>
@@ -81,7 +92,7 @@
   <div id="tab-vocab" class="tab-content active">
     <div class="card">
       <div class="card-title">
-        <span id="vocab-mode-title">Cài đặt bài học từ vựng</span>
+        <span id="vocab-mode-title">Cài đặt bài học từ vựng (Hàng đợi 10 từ xoay vòng)</span>
         <span class="tag" id="vocab-counter">0/10</span>
       </div>
       <div id="normal-vocab-filters" class="grid-2">
@@ -105,7 +116,7 @@
       </div>
       <div id="vocab-mode-switcher" class="grid-2">
         <button type="button" class="btn btn-primary" id="mode-quiz-btn" onclick="setVocabMode('quiz')">Trắc nghiệm A-B-C-D</button>
-        <button type="button" class="btn btn-secondary" id="mode-type-btn" onclick="setVocabMode('type')">Nhìn tiếng Việt gõ tiếng Anh</button>
+        <button type="button" class="btn btn-secondary" id="mode-type-btn" onclick="setVocabMode('type')">Nhìn Việt gõ Anh</button>
       </div>
       <button type="button" id="exit-review-btn" class="btn btn-danger btn-block" style="display:none; margin-top:8px;" onclick="exitReviewMode()">❌ Thoát chế độ ôn tập đã thuộc (Trở về học mới)</button>
     </div>
@@ -134,7 +145,7 @@
       <div id="v-feedback" class="feedback-box"></div>
 
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="button" class="btn btn-secondary btn-block" onclick="nextVocabQueue()">Từ tiếp theo ➔</button>
+        <button type="button" class="btn btn-secondary btn-block" onclick="nextVocabQueue()">Từ tiếp theo trong hàng đợi ➔</button>
       </div>
     </div>
   </div>
@@ -165,19 +176,25 @@
   <!-- ==================== 2. LUYỆN NGHE CHÉP CHÍNH TẢ (300+ CÂU) ==================== -->
   <div id="tab-dictation" class="tab-content">
     <div class="card">
+      <div class="card-title">
+        <span>Chọn chủ đề luyện nghe chép chính tả</span>
+      </div>
       <select id="lesson-select" onchange="loadSelectedLesson()"></select>
 
-      <div id="add-lesson-form" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border);">
-        <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Thêm câu luyện nghe mới (Mỗi dòng 1 câu dạng: <code>Tiếng Anh|Tiếng Việt</code>):</p>
-        <input type="text" id="new-lesson-title" placeholder="Tên chủ đề (VD: Hẹn lịch làm mi)" style="margin-bottom:6px;" />
-        <textarea id="new-lesson-sentences" rows="3" placeholder="I would like to book a lash fill.|Tôi muốn đặt lịch dặm mi.&#10;Is next Tuesday available?|Thứ ba tuần tới có trống lịch không?"></textarea>
-        <button type="button" class="btn btn-primary btn-block" style="margin-top:6px;" onclick="saveCustomLesson()">Lưu bài học</button>
+      <div class="dict-bookmark-bar" id="dict-bookmark-bar">
+        <div class="dict-bookmark-info">
+          <span class="dict-bookmark-dot"></span>
+          <span id="dict-bookmark-text">Đang học tới: Hội thoại #1 • Câu #1</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-secondary" id="dict-resume-btn" onclick="resumeSavedDictPosition()">
+          📍 Về đúng câu đang học
+        </button>
       </div>
     </div>
 
     <div class="card">
       <div class="audio-player-card">
-        <p style="font-size:12px; color:var(--muted); margin-bottom:6px;" id="dict-progress">Bài 1 • Câu 1 / 3</p>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:6px;" id="dict-progress">Hội thoại #1 • Câu 1 / 5</p>
         <div style="font-size: 18px; font-weight: 700; color: #1e3a8a; margin-bottom: 12px;">🎧 Bấm nghe âm thanh và gõ lại chính xác</div>
         <div style="display:flex; justify-content:center; gap:8px; margin-bottom:8px;">
           <button type="button" class="btn btn-primary" onclick="playCurrentAudio(1.0)">🔊 Nghe chuẩn (1.0x)</button>
@@ -295,6 +312,9 @@
 
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>

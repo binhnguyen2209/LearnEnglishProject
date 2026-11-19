@@ -1,4 +1,159 @@
-/* ================= GLOBAL STATE & FUNCTIONS ================= */
+/* ================= FIREBASE AUTH & FIRESTORE SYNC ================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD7BTffOTeGVrVXFmWw6YKzgsjdos2iL-s",
+  authDomain: "learnenglishproject-bf5a1.firebaseapp.com",
+  databaseURL: "https://learnenglishproject-bf5a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "learnenglishproject-bf5a1",
+  storageBucket: "learnenglishproject-bf5a1.firebasestorage.app",
+  messagingSenderId: "653462583307",
+  appId: "1:653462583307:web:bc8cbb317bec7b7b96ef0e"
+};
+
+let db = null;
+let auth = null;
+let currentUser = null;
+let syncTimeout = null;
+
+function initFirebase() {
+  if (!window.firebase || !FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") {
+    updateAuthUI();
+    return;
+  }
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(FIREBASE_CONFIG);
+  }
+
+  auth = firebase.auth();
+  db = firebase.firestore();
+
+  auth.onAuthStateChanged(async (user) => {
+    currentUser = user || null;
+    updateAuthUI();
+
+    if (currentUser) {
+      await loadUserProgressFromFirestore(currentUser.uid);
+    }
+  });
+}
+
+function updateAuthUI() {
+  const statusEl = document.getElementById('auth-status');
+  const loginBtn = document.getElementById('google-login-btn');
+  const logoutBtn = document.getElementById('google-logout-btn');
+
+  if (currentUser) {
+    if (statusEl) {
+      statusEl.innerText = `👤 ${currentUser.displayName || currentUser.email}`;
+    }
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+  } else {
+    if (statusEl) statusEl.innerText = 'Chưa đăng nhập (máy này)';
+    if (loginBtn) loginBtn.style.display = 'inline-flex';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+}
+
+async function signInWithGoogle() {
+  if (!auth) {
+    return alert('Bạn chưa điền FIREBASE_CONFIG thật trong app.js!');
+  }
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+  } catch (err) {
+    alert('Đăng nhập Google thất bại: ' + err.message);
+  }
+}
+
+async function signOutGoogle() {
+  if (!auth) return;
+  try {
+    await auth.signOut();
+  } catch (err) {
+    alert('Đăng xuất thất bại: ' + err.message);
+  }
+}
+
+async function loadUserProgressFromFirestore(uid) {
+  if (!db || !uid) return;
+  try {
+    const docRef = db.collection('users').doc(uid);
+    const snap = await docRef.get();
+
+    if (snap.exists) {
+      const data = snap.data() || {};
+
+      if (Array.isArray(data.mastered_vocab_ids)) {
+        masteredIds = data.mastered_vocab_ids;
+        localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
+      }
+
+      if (data.dict_progress && typeof data.dict_progress === 'object') {
+        dictProgressStore = {
+          lastLessonIdx: Number.isInteger(data.dict_progress.lastLessonIdx) ? data.dict_progress.lastLessonIdx : 0,
+          byLessonKey: data.dict_progress.byLessonKey && typeof data.dict_progress.byLessonKey === 'object'
+            ? data.dict_progress.byLessonKey
+            : {}
+        };
+        localStorage.setItem(DICT_PROGRESS_KEY, JSON.stringify(dictProgressStore));
+      }
+
+      if (data.grammar_progress && typeof data.grammar_progress === 'object') {
+        grammarProgressStore = data.grammar_progress;
+        localStorage.setItem(GRAMMAR_PROGRESS_KEY, JSON.stringify(grammarProgressStore));
+      }
+
+      if (Array.isArray(data.mistakes)) {
+        mistakes = data.mistakes;
+        localStorage.setItem('eng_mistakes', JSON.stringify(mistakes));
+      }
+
+      initVocabQueue();
+      initLessonSelect();
+      initGrammar();
+      renderNotebook();
+    } else {
+      await pushProgressNow(uid);
+    }
+  } catch (err) {
+    console.error('Lỗi tải dữ liệu từ Firestore:', err);
+  }
+}
+
+async function pushProgressNow(uid) {
+  if (!db || !uid) return;
+  try {
+    await db.collection('users').doc(uid).set(
+      {
+        email: currentUser?.email || '',
+        displayName: currentUser?.displayName || '',
+        mastered_vocab_ids: masteredIds,
+        dict_progress: dictProgressStore,
+        grammar_progress: grammarProgressStore,
+        mistakes: mistakes,
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    console.error('Lỗi lưu dữ liệu lên Firestore:', err);
+  }
+}
+
+function syncProgressToCloud() {
+  if (!currentUser || !db) return;
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => {
+    pushProgressNow(currentUser.uid);
+  }, 500);
+}
+
+/* ================= GLOBAL STATE & PROGRESS ================= */
+const DICT_PROGRESS_KEY = 'sweden_dict_progress_v1';
+const GRAMMAR_PROGRESS_KEY = 'sweden_grammar_progress_v1';
+
 let masteredIds = JSON.parse(localStorage.getItem('mastered_vocab_ids')) || [];
 
 let vocabQueue = [];
@@ -7,11 +162,41 @@ let vocabMode = 'quiz';
 let currentVocab = null;
 let isReviewingMastered = false;
 
-let lessons = JSON.parse(localStorage.getItem('custom_lessons')) || LESSONS_DATA;
+let lessons = LESSONS_DATA;
 let currentLesson = lessons[0];
 let currentDictIdx = 0;
 
-let currentTense = 'pres_simple';
+function loadDictSavedProgress() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(DICT_PROGRESS_KEY));
+    if (raw && typeof raw === 'object') {
+      return {
+        lastLessonIdx: Number.isInteger(raw.lastLessonIdx) ? raw.lastLessonIdx : 0,
+        byLessonKey: raw.byLessonKey && typeof raw.byLessonKey === 'object' ? raw.byLessonKey : {}
+      };
+    }
+  } catch (e) {}
+  return { lastLessonIdx: 0, byLessonKey: {} };
+}
+
+let dictProgressStore = loadDictSavedProgress();
+
+function loadGrammarSavedProgress() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(GRAMMAR_PROGRESS_KEY));
+    if (raw && typeof raw === 'object') {
+      return {
+        lastTense: typeof raw.lastTense === 'string' ? raw.lastTense : 'pres_simple',
+        byTense: raw.byTense && typeof raw.byTense === 'object' ? raw.byTense : {}
+      };
+    }
+  } catch (e) {}
+  return { lastTense: 'pres_simple', byTense: {} };
+}
+
+let grammarProgressStore = loadGrammarSavedProgress();
+
+let currentTense = grammarProgressStore.lastTense || 'pres_simple';
 let filteredGrammar = [];
 let grammarIdx = 0;
 
@@ -69,6 +254,7 @@ window.onload = function () {
   initGrammar();
   renderSpeaking();
   renderVerbs(IRREGULAR_VERBS);
+  initFirebase();
 };
 
 /* --- 1. VOCAB QUEUE LOGIC --- */
@@ -89,7 +275,7 @@ function getPoolSource() {
 
 function initVocabQueue() {
   isReviewingMastered = false;
-  document.getElementById('vocab-mode-title').innerText = 'Cài đặt bài học từ vựng';
+  document.getElementById('vocab-mode-title').innerText = 'Cài đặt bài học từ vựng (Hàng đợi 10 từ xoay vòng)';
   document.getElementById('normal-vocab-filters').style.display = 'grid';
   document.getElementById('vocab-mode-switcher').style.display = 'grid';
   document.getElementById('exit-review-btn').style.display = 'none';
@@ -211,6 +397,7 @@ function markCurrentAsMastered() {
   if (!masteredIds.includes(currentVocab.id)) {
     masteredIds.push(currentVocab.id);
     localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
+    syncProgressToCloud();
   }
   vocabQueue.splice(queueIdx % vocabQueue.length, 1);
 
@@ -275,72 +462,211 @@ function toggleStoreMaster(id, filterType) {
     masteredIds.push(id);
   }
   localStorage.setItem('mastered_vocab_ids', JSON.stringify(masteredIds));
+  syncProgressToCloud();
   renderVocabStore(filterType);
   if (!isReviewingMastered) initVocabQueue();
 }
 
-/* --- 2. DICTATION (AI AUDIO) --- */
-function initLessonSelect() {
-  const sel = document.getElementById('lesson-select');
-  if (sel) sel.innerHTML = lessons.map((l, idx) => `<option value="${idx}">${l.title}</option>`).join('');
-  loadSelectedLesson();
+/* --- 2. DICTATION (HỘI THOẠI & CÂU ĐANG HỌC) --- */
+function getLessonKey(lesson, idx) {
+  return lesson && lesson.id ? String(lesson.id) : `lesson_${idx}`;
 }
 
-function loadSelectedLesson() {
-  const idx = document.getElementById('lesson-select') ? document.getElementById('lesson-select').value : 0;
-  currentLesson = lessons[idx];
-  currentDictIdx = 0;
+function saveCurrentDictPosition() {
+  const lessonIdx = lessons.indexOf(currentLesson);
+  const safeLessonIdx = lessonIdx >= 0 ? lessonIdx : 0;
+  const total = currentLesson && Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
+  const safeSentenceIdx = total > 0 ? Math.min(Math.max(currentDictIdx, 0), total - 1) : 0;
+
+  const key = getLessonKey(currentLesson, safeLessonIdx);
+  const prevEntry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0, maxVisitedIdx: 0 };
+  const nextMaxVisited = Math.max(prevEntry.maxVisitedIdx || 0, safeSentenceIdx);
+
+  dictProgressStore.lastLessonIdx = safeLessonIdx;
+  dictProgressStore.byLessonKey[key] = {
+    sentenceIdx: safeSentenceIdx,
+    maxVisitedIdx: nextMaxVisited
+  };
+
+  localStorage.setItem(DICT_PROGRESS_KEY, JSON.stringify(dictProgressStore));
+  renderDictBookmarkBar();
+  syncProgressToCloud();
+}
+
+function renderDictBookmarkBar() {
+  const txtEl = document.getElementById('dict-bookmark-text');
+  const savedLessonIdx = Math.min(Math.max(dictProgressStore.lastLessonIdx || 0, 0), lessons.length - 1);
+  const savedLesson = lessons[savedLessonIdx];
+  if (!savedLesson) return;
+
+  const key = getLessonKey(savedLesson, savedLessonIdx);
+  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0, maxVisitedIdx: 0 };
+  const totalSentences = Array.isArray(savedLesson.sentences) ? savedLesson.sentences.length : 0;
+  const sentenceNum = totalSentences > 0 ? Math.min((entry.sentenceIdx || 0) + 1, totalSentences) : 1;
+
+  if (txtEl) {
+    txtEl.innerText = `Đang học tới: Hội thoại #${savedLessonIdx + 1} (${savedLesson.title}) • Câu #${sentenceNum}/${totalSentences}`;
+  }
+}
+
+function resumeSavedDictPosition() {
+  const savedLessonIdx = Math.min(Math.max(dictProgressStore.lastLessonIdx || 0, 0), lessons.length - 1);
+  const sel = document.getElementById('lesson-select');
+  if (sel) sel.value = String(savedLessonIdx);
+
+  currentLesson = lessons[savedLessonIdx];
+  const key = getLessonKey(currentLesson, savedLessonIdx);
+  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0 };
+  const total = currentLesson.sentences ? currentLesson.sentences.length : 0;
+  currentDictIdx = total > 0 ? Math.min(Math.max(entry.sentenceIdx || 0, 0), total - 1) : 0;
+
   updateDictUI();
 }
 
+function initLessonSelect() {
+  const sel = document.getElementById('lesson-select');
+  if (sel) {
+    sel.innerHTML = lessons
+      .map((l, idx) => {
+        const key = getLessonKey(l, idx);
+        const entry = dictProgressStore.byLessonKey[key];
+        const total = Array.isArray(l.sentences) ? l.sentences.length : 0;
+        const mark = entry && total > 0
+          ? ` — [Đang ở câu ${Math.min((entry.sentenceIdx || 0) + 1, total)}/${total}]`
+          : '';
+        return `<option value="${idx}">Hội thoại #${idx + 1}: ${l.title}${mark}</option>`;
+      })
+      .join('');
+  }
+
+  const startLessonIdx = Math.min(Math.max(dictProgressStore.lastLessonIdx || 0, 0), lessons.length - 1);
+  currentLesson = lessons[startLessonIdx];
+  if (sel) sel.value = String(startLessonIdx);
+
+  const key = getLessonKey(currentLesson, startLessonIdx);
+  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0 };
+  const total = currentLesson && Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
+  currentDictIdx = total > 0 ? Math.min(Math.max(entry.sentenceIdx || 0, 0), total - 1) : 0;
+
+  updateDictUI();
+}
+
+function loadSelectedLesson() {
+  const sel = document.getElementById('lesson-select');
+  const idx = sel ? parseInt(sel.value, 10) : 0;
+  const safeIdx = Number.isNaN(idx) ? 0 : Math.min(Math.max(idx, 0), lessons.length - 1);
+
+  currentLesson = lessons[safeIdx];
+  const key = getLessonKey(currentLesson, safeIdx);
+  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0 };
+  const total = currentLesson && Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
+  currentDictIdx = total > 0 ? Math.min(Math.max(entry.sentenceIdx || 0, 0), total - 1) : 0;
+
+  saveCurrentDictPosition();
+  updateDictUI();
+}
+
+function refreshLessonDropdownLabels() {
+  const sel = document.getElementById('lesson-select');
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = lessons
+    .map((l, idx) => {
+      const key = getLessonKey(l, idx);
+      const entry = dictProgressStore.byLessonKey[key];
+      const total = Array.isArray(l.sentences) ? l.sentences.length : 0;
+      const mark = entry && total > 0
+        ? ` — [Đang ở câu ${Math.min((entry.sentenceIdx || 0) + 1, total)}/${total}]`
+        : '';
+      return `<option value="${idx}">Hội thoại #${idx + 1}: ${l.title}${mark}</option>`;
+    })
+    .join('');
+  sel.value = currentVal;
+}
+
 function updateDictUI() {
+  const lessonIdx = lessons.indexOf(currentLesson);
+  const safeLessonIdx = lessonIdx >= 0 ? lessonIdx : 0;
+  const key = getLessonKey(currentLesson, safeLessonIdx);
+  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0, maxVisitedIdx: 0 };
+  const maxVisitedIdx = entry.maxVisitedIdx || 0;
+
   const prog = document.getElementById('dict-progress');
-  if (prog) prog.innerText = `${currentLesson.title} • Câu ${currentDictIdx + 1} / ${currentLesson.sentences.length}`;
+  if (prog) {
+    prog.innerText = `Hội thoại #${safeLessonIdx + 1} • ${currentLesson.title} • Câu ${currentDictIdx + 1} / ${currentLesson.sentences.length}`;
+  }
+
   const inp = document.getElementById('dict-input');
   if (inp) inp.value = '';
   const res = document.getElementById('dict-result');
   if (res) res.style.display = 'none';
+
   const scriptBox = document.getElementById('full-script-box');
   if (scriptBox) {
     scriptBox.innerHTML = currentLesson.sentences
-      .map(
-        (s, i) =>
-          `<div class="script-item ${i === currentDictIdx ? 'active-line' : ''}" onclick="jumpToDict(${i})">
-          <b>#${i + 1}:</b> ${s.en} <br/><span style="color:var(--muted)">🇻🇳 ${s.vi}</span>
-        </div>`
-      )
+      .map((s, i) => {
+        const isCurrent = i === currentDictIdx;
+        const isPassed = i < maxVisitedIdx && !isCurrent;
+        const badge = isCurrent
+          ? `<span class="script-badge-current">📍 Đang học</span>`
+          : isPassed
+            ? `<span class="script-badge-done">✓ Đã qua</span>`
+            : '';
+
+        return `<div class="script-item ${isCurrent ? 'active-line' : ''}" onclick="jumpToDict(${i})">
+          <div class="script-item-head">
+            <b>#${i + 1}:</b>
+            ${badge}
+          </div>
+          <div>${s.en}</div>
+          <span style="color:var(--muted)">🇻🇳 ${s.vi}</span>
+        </div>`;
+      })
       .join('');
   }
+
+  refreshLessonDropdownLabels();
+  renderDictBookmarkBar();
 }
 
 function playCurrentAudio(rate) {
   const item = currentLesson.sentences[currentDictIdx];
-  if (item) speakText(item.en, rate);
+  if (item) {
+    saveCurrentDictPosition();
+    speakText(item.en, rate);
+  }
 }
 
 function jumpToDict(i) {
   currentDictIdx = i;
+  saveCurrentDictPosition();
   updateDictUI();
   playCurrentAudio(1.0);
 }
+
 function nextDictSentence() {
   if (currentDictIdx < currentLesson.sentences.length - 1) {
     currentDictIdx++;
+    saveCurrentDictPosition();
     updateDictUI();
     playCurrentAudio(1.0);
   }
 }
+
 function prevDictSentence() {
   if (currentDictIdx > 0) {
     currentDictIdx--;
+    saveCurrentDictPosition();
     updateDictUI();
     playCurrentAudio(1.0);
   }
 }
+
 function toggleFullScript() {
   const box = document.getElementById('full-script-box');
   if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
 }
+
 function handleDictKey(e) {
   if (e.ctrlKey) {
     e.preventDefault();
@@ -353,6 +679,7 @@ function handleDictKey(e) {
 }
 
 function checkDictation() {
+  saveCurrentDictPosition();
   const item = currentLesson.sentences[currentDictIdx];
   const userWords = document.getElementById('dict-input').value.trim().split(/\s+/);
   const rawTarget = item.en.split(/\s+/);
@@ -371,34 +698,16 @@ function checkDictation() {
   res.innerHTML = `<div>${html}</div><div style="margin-top:6px; font-size:13px; color:var(--muted)">🇻🇳 ${item.vi}</div>`;
 }
 
-function toggleAddLessonForm() {
-  const f = document.getElementById('add-lesson-form');
-  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+/* --- 3. GRAMMAR (LƯU CÂU ĐANG HỌC THEO TỪNG THÌ) --- */
+function saveGrammarProgress() {
+  grammarProgressStore.lastTense = currentTense;
+  grammarProgressStore.byTense[currentTense] = grammarIdx;
+  localStorage.setItem(GRAMMAR_PROGRESS_KEY, JSON.stringify(grammarProgressStore));
+  syncProgressToCloud();
 }
 
-function saveCustomLesson() {
-  const title = document.getElementById('new-lesson-title').value.trim();
-  const rawLines = document.getElementById('new-lesson-sentences').value.trim().split('\n');
-  if (!title || rawLines.length === 0) return alert('Vui lòng nhập đủ thông tin!');
-
-  const sentences = rawLines
-    .map((l) => {
-      const parts = l.split('|');
-      return { en: (parts[0] || '').trim(), vi: (parts[1] || '').trim() };
-    })
-    .filter((s) => s.en);
-
-  lessons.push({ id: 'custom_' + Date.now(), title, sentences });
-  localStorage.setItem('custom_lessons', JSON.stringify(lessons));
-  initLessonSelect();
-  document.getElementById('lesson-select').value = lessons.length - 1;
-  loadSelectedLesson();
-  toggleAddLessonForm();
-  alert('Đã lưu bài học mới!');
-}
-
-/* --- 3. GRAMMAR --- */
 function initGrammar() {
+  currentTense = grammarProgressStore.lastTense || currentTense;
   const coreEl = document.getElementById('core-tenses');
   const otherEl = document.getElementById('other-tenses');
   if (coreEl) {
@@ -432,7 +741,9 @@ function selectTense(tId) {
 
   filteredGrammar = GRAMMAR_QUESTIONS.filter((q) => q.tense === tId);
   if (filteredGrammar.length === 0) filteredGrammar = GRAMMAR_QUESTIONS;
-  grammarIdx = 0;
+  const savedIdx = grammarProgressStore.byTense[tId];
+  grammarIdx = Number.isInteger(savedIdx) && savedIdx >= 0 ? savedIdx : 0;
+  saveGrammarProgress();
   renderGrammarQ();
 }
 
@@ -459,7 +770,7 @@ function initGrammarUIOnly() {
 
 function renderGrammarQ() {
   const qObj = filteredGrammar[grammarIdx % filteredGrammar.length];
-  document.getElementById('g-question').innerText = `Câu ${grammarIdx + 1}: ${qObj.q}`;
+  document.getElementById('g-question').innerText = `Câu ${(grammarIdx % filteredGrammar.length) + 1}: ${qObj.q}`;
   document.getElementById('g-feedback').className = 'feedback-box';
   const letters = ['A', 'B', 'C', 'D'];
   document.getElementById('g-options').innerHTML = qObj.opts
@@ -484,8 +795,10 @@ function checkGrammar(btn, isCorrect, chosenOpt) {
     addMistake(`Ngữ pháp: ${qObj.q} (Bạn chọn sai: ${chosenOpt})`);
   }
 }
+
 function nextGrammar() {
   grammarIdx++;
+  saveGrammarProgress();
   renderGrammarQ();
 }
 
@@ -511,6 +824,7 @@ function renderSpeaking() {
   const resEl = document.getElementById('sp-result');
   if (resEl) resEl.className = 'feedback-box';
 }
+
 function nextSpeaking() {
   speakIdx++;
   renderSpeaking();
@@ -548,6 +862,7 @@ function renderVerbs(list) {
       .join('');
   }
 }
+
 function filterVerbs() {
   const kw = document.getElementById('verb-search').value.toLowerCase();
   renderVerbs(
@@ -566,13 +881,17 @@ function addMistake(text) {
   if (!mistakes.includes(text)) {
     mistakes.unshift(text);
     localStorage.setItem('eng_mistakes', JSON.stringify(mistakes.slice(0, 50)));
+    syncProgressToCloud();
   }
 }
+
 function clearMistakes() {
   mistakes = [];
   localStorage.removeItem('eng_mistakes');
+  syncProgressToCloud();
   renderNotebook();
 }
+
 function renderNotebook() {
   const mList = document.getElementById('mistake-list');
   if (mList)
