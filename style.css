@@ -1035,3 +1035,86 @@ th { background: #f8fafc; font-weight: 700; }
   color: #047857;
   margin-right: 4px;
 }
+
+/* BỐ CỤC CÓ KHUNG DỊCH */
+.container {
+  max-width: 1800px;
+  max-height: 1800px;
+}
+
+#learning-five-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 20px;
+  align-items: start;
+}
+
+#learning-five-layout .learning-main-col {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+#learning-five-layout .learning-main-col > .tab-content {
+  display: none;
+}
+
+#learning-five-layout .learning-main-col > .tab-content.active {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#learning-five-layout .learning-main-col > .tab-content.active > .card {
+  margin-bottom: 0;
+}
+
+#learning-five-layout #smart-dict-widget {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 520px;
+  padding: 20px;
+  position: sticky;
+  top: 112px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#learning-five-layout #smart-dict-widget .sd-textarea {
+  min-height: 110px;
+  font-size: 14.5px;
+}
+
+#learning-five-layout #smart-dict-widget .sd-result {
+  flex: 1;
+  font-size: 14px;
+}
+
+#learning-five-layout .learning-spacer-col {
+  display: none;
+}
+
+#learning-five-layout.no-translator {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+#learning-five-layout.no-translator #smart-dict-widget,
+#learning-five-layout.no-translator .learning-spacer-col {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  #learning-five-layout {
+    grid-template-columns: 1fr;
+  }
+
+  #learning-five-layout .learning-main-col,
+  #learning-five-layout #smart-dict-widget {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+    min-height: auto;
+  }
+}

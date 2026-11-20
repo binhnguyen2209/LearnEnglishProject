@@ -1725,3 +1725,158 @@ function speakText(text, rate = 0.95) {
 
   window.speechSynthesis.speak(utter);
 }
+/* --- DỊCH VIỆT <-> ANH & GIẢI THÍCH CHI TIẾT TỪ TIẾNG ANH --- */
+let sdDirection = 'vi-en'; // 'vi-en' hoặc 'en-vi'
+
+function swapTranslateDirection() {
+  sdDirection = sdDirection === 'vi-en' ? 'en-vi' : 'vi-en';
+  const labelEl = document.getElementById('sd-dir-label');
+  const inputEl = document.getElementById('sd-input');
+  if (labelEl) {
+    labelEl.innerText = sdDirection === 'vi-en' ? 'Việt → Anh' : 'Anh → Việt';
+  }
+  if (inputEl) {
+    inputEl.placeholder =
+      sdDirection === 'vi-en'
+        ? 'Nhập từ hoặc câu tiếng Việt (hoặc bấm ⇄ để dịch Anh → Việt)...'
+        : 'Nhập từ hoặc câu tiếng Anh (hoặc bấm ⇄ để dịch Việt → Anh)...';
+  }
+}
+
+function clearSmartTranslate() {
+  const inputEl = document.getElementById('sd-input');
+  const resEl = document.getElementById('sd-result');
+  if (inputEl) inputEl.value = '';
+  if (resEl) {
+    resEl.innerHTML = `<div class="sd-placeholder">Gõ từ tiếng Anh hoặc tiếng Việt để xem bản dịch kèm phân tích từ loại, giải thích nghĩa chi tiết và ví dụ.</div>`;
+  }
+}
+
+async function fetchTranslationText(text, sourceLang, targetLang) {
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Không kết nối được dịch vụ dịch');
+  const data = await res.json();
+  return data?.responseData?.translatedText || '';
+}
+
+function findLocalVocabMatch(enQuery) {
+  const clean = String(enQuery || '').trim().toLowerCase();
+  if (!clean || typeof VOCAB_DATA === 'undefined' || !Array.isArray(VOCAB_DATA)) return null;
+  return VOCAB_DATA.find((item) => String(item.en || '').trim().toLowerCase() === clean) || null;
+}
+
+async function fetchEnglishWordDetails(enWord) {
+  const word = String(enWord || '').trim().split(/\s+/)[0].replace(/[^a-zA-Z'-]/g, '');
+  if (!word) return null;
+  try {
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    const entry = Array.isArray(json) ? json[0] : null;
+    if (!entry) return null;
+
+    const phonetic =
+      entry.phonetic ||
+      (entry.phonetics || []).find((p) => p.text)?.text ||
+      '';
+
+    const meanings = (entry.meanings || []).slice(0, 2).map((m) => {
+      const firstDef = (m.definitions && m.definitions[0]) || {};
+      return {
+        partOfSpeech: m.partOfSpeech || '',
+        definitionEn: firstDef.definition || '',
+        exampleEn: firstDef.example || ''
+      };
+    });
+
+    return { word: entry.word || word, phonetic, meanings };
+  } catch (_) {
+    return null;
+  }
+}
+
+function escapeJsSingle(str) {
+  return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+async function runSmartTranslate() {
+  const inputEl = document.getElementById('sd-input');
+  const resEl = document.getElementById('sd-result');
+  if (!inputEl || !resEl) return;
+
+  const rawText = inputEl.value.trim();
+  if (!rawText) {
+    resEl.innerHTML = `<div class="sd-placeholder">Bạn chưa nhập nội dung cần dịch.</div>`;
+    return;
+  }
+
+  resEl.innerHTML = `<div class="sd-placeholder">⏳ Đang dịch và phân tích chi tiết...</div>`;
+
+  const isViToEn = sdDirection === 'vi-en';
+  const sourceLang = isViToEn ? 'vi' : 'en';
+  const targetLang = isViToEn ? 'en' : 'vi';
+
+  try {
+    const translated = await fetchTranslationText(rawText, sourceLang, targetLang);
+    const englishTarget = isViToEn ? translated : rawText;
+
+    const localMatch = findLocalVocabMatch(englishTarget);
+    const dictDetails = await fetchEnglishWordDetails(englishTarget);
+
+    let viExplanation = '';
+    if (dictDetails && dictDetails.meanings.length > 0 && dictDetails.meanings[0].definitionEn) {
+      try {
+        viExplanation = await fetchTranslationText(dictDetails.meanings[0].definitionEn, 'en', 'vi');
+      } catch (_) {
+        viExplanation = '';
+      }
+    }
+    let dictHtml = '';
+    if (dictDetails && dictDetails.meanings.length > 0) {
+      const itemsHtml = dictDetails.meanings
+        .map((m, idx) => `
+          <div style="${idx > 0 ? 'margin-top:8px; padding-top:8px; border-top:1px dashed #e2e8f0;' : ''}">
+            <span class="sd-pos-tag">${m.partOfSpeech || 'từ vựng'}</span>
+            <span>${m.definitionEn}</span>
+            ${idx === 0 && viExplanation ? `<div style="margin-top:4px; color:#0f766e;"><b>Giải thích tiếng Việt:</b> ${viExplanation}</div>` : ''}
+            ${m.exampleEn ? `<div style="margin-top:4px; font-style:italic; color:#475569;">Ví dụ: "${m.exampleEn}"</div>` : ''}
+          </div>
+        `)
+        .join('');
+
+      dictHtml = `
+        <div class="sd-detail-card">
+          <div style="font-weight:700; margin-bottom:6px;">
+            📖 Giải thích từ "${dictDetails.word}" ${dictDetails.phonetic ? `<span style="font-weight:400; color:#64748b;">${dictDetails.phonetic}</span>` : ''}
+          </div>
+          ${itemsHtml}
+        </div>
+      `;
+    } else if (!localMatch) {
+      dictHtml = `
+        <div class="sd-detail-card">
+          <div style="font-weight:700; margin-bottom:4px;">💡 Giải thích ngữ cảnh</div>
+          <div>Cụm/từ "<b>${englishTarget}</b>" được dùng ở dạng ${isViToEn ? 'tương đương bản dịch tiếng Anh phía trên' : 'tiếng Anh như bạn vừa nhập'}. Gõ từ đơn tiếng Anh nếu muốn xem phân tích từ loại và ví dụ chi tiết hơn.</div>
+        </div>
+      `;
+    }
+
+    const speakBtnHtml =
+      typeof speakText === 'function' && englishTarget
+        ? `<button type="button" class="btn btn-sm btn-secondary" onclick="speakText('${escapeJsSingle(englishTarget)}', 0.95)">🔊</button>`
+        : '';
+
+    resEl.innerHTML = `
+      <div class="sd-translated-box">
+        <div class="sd-translated-main">
+          <span>${translated || '(Không có bản dịch)'}</span>
+          ${speakBtnHtml}
+        </div>
+      </div>
+      ${dictHtml}
+    `;
+  } catch (err) {
+    resEl.innerHTML = `<div class="sd-placeholder">⚠️ Lỗi kết nối khi dịch: ${err.message}. Thử lại sau ít giây nhé.</div>`;
+  }
+}
