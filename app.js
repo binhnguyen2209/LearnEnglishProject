@@ -1485,10 +1485,10 @@ function practiceFromHistory(recordId) {
   startSpeechRecognition(targetFromHistory);
 }
 
-function clearSpokenHistory() {
+/* function clearSpokenHistory() {
   spokenHistory = [];
   saveSpokenHistory();
-}
+} */
 
 function renderSpokenHistory() {
   const listEl = document.getElementById('spoken-history-list');
