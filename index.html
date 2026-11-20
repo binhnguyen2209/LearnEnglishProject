@@ -24,7 +24,6 @@
         <div class="header-title-row">
           <h1>English For Work &amp; Life</h1>
         </div>
-        <p class="header-subtitle">Lộ trình 6 bậc • Chuẩn bị cho cuộc sống &amp; công việc tại Thụy Điển</p>
       </div>
 
       <div class="auth-box" id="auth-box">
@@ -46,7 +45,6 @@
     <div class="drawer-header">
       <div>
         <div class="drawer-kicker">MENU HỌC TẬP</div>
-        <div class="drawer-title">Danh mục</div>
       </div>
       <button type="button" class="close-menu-btn" aria-label="Đóng menu" onclick="closeMenu()">✕</button>
     </div>
@@ -74,13 +72,13 @@
       <span class="nav-icon">⚡</span>
       <span class="nav-label">Bất quy tắc (Full)</span>
     </button>
-    <button type="button" class="nav-btn" onclick="switchTab('notebook', this)">
-      <span class="nav-icon">📌</span>
-      <span class="nav-label">Sổ tay &amp; Câu sai</span>
-    </button>
     <button type="button" class="nav-btn" onclick="switchTab('vocab-store', this)">
       <span class="nav-icon">📚</span>
       <span class="nav-label">Kho từ vựng</span>
+    </button>
+    <button type="button" class="nav-btn" onclick="switchTab('notebook', this)">
+      <span class="nav-icon">📌</span>
+      <span class="nav-label">Sổ tay &amp; Câu sai</span>
     </button>
 
     <div class="drawer-footer">
@@ -115,6 +113,7 @@
             <option value="spa">💆‍♀️ Spa &amp; Chăm sóc da</option>
             <option value="salon">🗣️ Tư vấn khách tại tiệm</option>
             <option value="sweden">🇸🇪 Cuộc sống Thụy Điển</option>
+            <option value="personal_and_family">Bản thân và gia đình</option>
           </select>
         </div>
         <div id="vocab-mode-switcher" class="grid-2">
@@ -141,6 +140,7 @@
         <div class="word-box">
           <div class="word-main" id="v-prompt">...</div>
           <div class="word-sub" id="v-phonetic"></div>
+          <div class="word-sub" id="v-termNote"></div>
         </div>
 
         <div id="v-quiz-area"></div>
@@ -194,9 +194,9 @@
           <span>Chọn chủ đề luyện nghe chép chính tả</span>
         </div>
         <select id="lesson-select" onchange="loadSelectedLesson()"></select>
-        <button type="button" class="btn btn-sm btn-secondary" id="dict-resume-btn" onclick="resumeSavedDictPosition()">
+        <!-- <button type="button" class="btn btn-sm btn-secondary" id="dict-resume-btn" onclick="resumeSavedDictPosition()">
           📍 Về đúng câu đang học
-        </button>
+        </button> -->
       </div>
 
       <div class="card">
@@ -248,8 +248,7 @@
             </div>
           </div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button type="button" class="btn btn-sm btn-secondary" onclick="clearGrammarHistory()">Xóa lịch sử
-              làm</button>
+            <!-- <button type="button" class="btn btn-sm btn-secondary" onclick="clearGrammarHistory()">Xóa lịch sử làm</button> -->
             <button type="button" class="btn btn-sm btn-primary" onclick="toggleGrammarReview(false)">Đóng</button>
           </div>
         </div>
@@ -366,10 +365,10 @@
         </div>
       </div>
 
-      <div class="card">
+      <!-- <div class="card">
         <div class="card-title">📖 Sổ tay mẫu câu "Sống còn" tại tiệm Thụy Điển</div>
         <div id="cheatsheet-list"></div>
-      </div>
+      </div> -->
     </div>
 
   </div>

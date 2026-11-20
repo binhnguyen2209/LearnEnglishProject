@@ -442,6 +442,10 @@ function renderVocab(autoSpeak = true) {
   if (vocabMode === 'quiz') {
     document.getElementById('v-prompt').innerText = currentVocab.en;
     document.getElementById('v-phonetic').innerText = currentVocab.phonetic;
+    if (Object.hasOwn(currentVocab, "termNote"))
+      document.getElementById('v-termNote').innerText = currentVocab.termNote;
+    else
+      document.getElementById('v-termNote').innerText = "";
     const others = VOCAB_DATA.filter((x) => x.id !== currentVocab.id)
       .sort(() => 0.5 - Math.random())
       .slice(0, 3);
@@ -641,23 +645,23 @@ function loadSelectedLesson() {
   updateDictUI();
 }
 
-function resumeSavedDictPosition() {
-  const maxIdx = Math.max(lessons.length - 1, 0);
-  const savedLessonIdx = Math.min(Math.max(Number(dictProgressStore.lastLessonIdx) || 0, 0), maxIdx);
-  const targetLesson = lessons[savedLessonIdx];
-  if (!targetLesson) return;
+// function resumeSavedDictPosition() {
+//   const maxIdx = Math.max(lessons.length - 1, 0);
+//   const savedLessonIdx = Math.min(Math.max(Number(dictProgressStore.lastLessonIdx) || 0, 0), maxIdx);
+//   const targetLesson = lessons[savedLessonIdx];
+//   if (!targetLesson) return;
 
-  currentLesson = targetLesson;
-  const key = getLessonKey(currentLesson, savedLessonIdx);
-  const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0, maxVisitedIdx: 0 };
-  const total = Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
-  currentDictIdx = total > 0 ? Math.min(Math.max(Number(entry.sentenceIdx) || 0, 0), total - 1) : 0;
+//   currentLesson = targetLesson;
+//   const key = getLessonKey(currentLesson, savedLessonIdx);
+//   const entry = dictProgressStore.byLessonKey[key] || { sentenceIdx: 0, maxVisitedIdx: 0 };
+//   const total = Array.isArray(currentLesson.sentences) ? currentLesson.sentences.length : 0;
+//   currentDictIdx = total > 0 ? Math.min(Math.max(Number(entry.sentenceIdx) || 0, 0), total - 1) : 0;
 
-  const sel = document.getElementById('lesson-select');
-  if (sel) sel.value = String(savedLessonIdx);
+//   const sel = document.getElementById('lesson-select');
+//   if (sel) sel.value = String(savedLessonIdx);
 
-  updateDictUI();
-}
+//   updateDictUI();
+// }
 
 function initLessonSelect() {
   const sel = document.getElementById('lesson-select');
@@ -670,7 +674,7 @@ function initLessonSelect() {
         const mark = entry && total > 0
           ? ` — [Đang ở câu ${Math.min((entry.sentenceIdx || 0) + 1, total)}/${total}]`
           : '';
-        return `<option value="${idx}">Hội thoại #${idx + 1}: ${l.title}${mark}</option>`;
+        return `<option value="${idx}">${l.title}${mark}</option>`;
       })
       .join('');
   }
@@ -699,7 +703,7 @@ function refreshLessonDropdownLabels() {
       const mark = entry && total > 0
         ? ` — [Đang ở câu ${Math.min((entry.sentenceIdx || 0) + 1, total)}/${total}]`
         : '';
-      return `<option value="${idx}">Hội thoại #${idx + 1}: ${l.title}${mark}</option>`;
+      return `<option value="${idx}">${l.title}${mark}</option>`;
     })
     .join('');
   sel.value = currentVal;
@@ -714,7 +718,7 @@ function updateDictUI() {
 
   const prog = document.getElementById('dict-progress');
   if (prog) {
-    prog.innerText = `Hội thoại #${safeLessonIdx + 1} • ${currentLesson.title} • Câu ${currentDictIdx + 1} / ${currentLesson.sentences.length}`;
+    prog.innerText = `• ${currentLesson.title} • Câu ${currentDictIdx + 1} / ${currentLesson.sentences.length}`;
   }
 
   const inp = document.getElementById('dict-input');
@@ -1003,21 +1007,84 @@ function renderGrammarQ() {
     .join('');
 }
 
+function formatWhyWrong(whyWrongText, correctIdx) {
+  if (!whyWrongText) return '';
+
+  // Tách các mục theo " - Đáp án " (hoặc giữ nguyên nếu không có mẫu này)
+  const parts = whyWrongText
+    .split(/\s*-\s*(?=Đáp án\s+[A-D]\b)/i)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  if (parts.length <= 1) {
+    return `<div class="essence-box">${whyWrongText}</div>`;
+  }
+
+  const letters = ['A', 'B', 'C', 'D'];
+  const correctLetter = typeof correctIdx === 'number' ? letters[correctIdx] : String(correctIdx || '').toUpperCase();
+
+  const itemsHtml = parts.map((part, idx) => {
+    const match = part.match(/^Đáp án\s+([A-D])\s*(\([^)]*\))?\s*:\s*(.*)$/i);
+    const letter = match ? match[1].toUpperCase() : letters[idx] || '';
+    const optWord = match && match[2] ? ` ${match[2]}` : '';
+    const desc = match ? match[3] : part;
+
+    const isRightOpt = correctLetter ? letter === correctLetter : /đúng\s*vì/i.test(desc);
+
+    return `
+      <li class="analysis-item ${isRightOpt ? 'is-correct' : 'is-wrong'}">
+        <div class="item-top">
+          <span class="badge ${isRightOpt ? 'badge-correct' : 'badge-wrong'}">
+            ${isRightOpt ? '✓ Đúng' : '✕ Sai'}
+          </span>
+          <strong class="opt-name">${letter}${optWord}</strong>
+        </div>
+        <p class="item-desc">${desc}</p>
+      </li>
+    `;
+  }).join('');
+
+  return `<ul class="option-analysis-list">${itemsHtml}</ul>`;
+}
+
 function checkGrammar(btn, isCorrect, chosenIdx) {
   const qObj = filteredGrammar[grammarIdx % filteredGrammar.length];
   const chosenOpt = qObj.opts[chosenIdx];
   const fb = document.getElementById('g-feedback');
+
+  // Đổi 'qObj.ans' thành tên trường lưu đáp án đúng trong qObj của bạn (vd: qObj.correct, qObj.answer...)
+  const correctIdx = qObj.ans ?? qObj.correct ?? qObj.answer;
 
   recordGrammarAttempt(qObj, chosenIdx);
 
   if (isCorrect) {
     btn.classList.add('correct');
     fb.className = 'feedback-box show fb-ok';
-    fb.innerHTML = `✅ Chính xác tuyệt đối!<br/><b>Vì sao đúng:</b> ${qObj.whyRight}`;
+    fb.innerHTML = `
+      <div class="feedback-header">
+        <span>✅</span>
+        <strong>Chính xác tuyệt đối!</strong>
+      </div>
+      <div class="essence-box">
+        <span class="essence-label">Vì sao đúng:</span>
+        <span>${qObj.whyRight || ''}</span>
+      </div>
+    `;
   } else {
     btn.classList.add('wrong');
     fb.className = 'feedback-box show fb-err';
-    fb.innerHTML = `❌ Chưa chính xác!<br/><b>Phân tích lỗi sai:</b> ${qObj.whyWrong}<br/><br/><b>Bản chất đúng:</b> ${qObj.whyRight}`;
+    fb.innerHTML = `
+      <div class="feedback-header">
+        <span>❌</span>
+        <strong>Chưa chính xác!</strong>
+      </div>
+      <div class="feedback-section-title">Phân tích lỗi sai:</div>
+      ${formatWhyWrong(qObj.whyWrong, correctIdx)}
+      <div class="essence-box">
+        <span class="essence-label">💡 Bản chất đúng:</span>
+        <span>${qObj.whyRight || ''}</span>
+      </div>
+    `;
     addMistake(`Ngữ pháp: ${qObj.q} (Bạn chọn sai: ${chosenOpt})`);
   }
 }
@@ -1039,10 +1106,10 @@ function toggleGrammarReview(forceState) {
   }
 }
 
-function clearGrammarHistory() {
-  grammarDoneMap = {};
-  saveGrammarDoneMap();
-}
+// function clearGrammarHistory() {
+//   grammarDoneMap = {};
+//   saveGrammarDoneMap();
+// }
 
 function onReviewCheckboxChange(encodedKey, optIdx, checkboxEl) {
   const qKey = decodeURIComponent(encodedKey);
@@ -1604,7 +1671,7 @@ function clearMistakes() {
   renderNotebook();
 }
 
-function renderNotebook() {
+/* function renderNotebook() {
   const mList = document.getElementById('mistake-list');
   if (mList)
     mList.innerHTML = mistakes.length
@@ -1626,7 +1693,7 @@ function renderNotebook() {
         </div>`
     ).join('');
   }
-}
+} */
 
 let speakCallCount = 0;
 
